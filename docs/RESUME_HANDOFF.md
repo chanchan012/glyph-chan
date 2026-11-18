@@ -26,4 +26,6 @@ Configure Clerk's production domain for the deployed site. Both Clerk keys and R
 
 ## Next subgoal
 
+Resume from the tested foundation on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) to inspect the shell. The [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables) belong to the linked deployment project. After setting credentials and redeploying, sign in and request /api/account in the same browser. Verify that the response contains your Clerk user ID and that the Redis limiter records the request. Apply the migration to the intended Neon branch and verify the three tables before starting dashboard persistence.
+
 Branch from main for 1.2. Give the 3–5 bullet brief, implement owner-scoped dashboard CRUD for typefaces and icon sets, connect the landing shell, and wire Inngest specimen thumbnails. Use separate test database data, cover CRUD and job behavior in Vitest, and cover dashboard grid and viewport geometry in Playwright. Merge after tests, build, deploy and update all three handoff documents. Later milestones and their order are listed in PROGRESS.md.

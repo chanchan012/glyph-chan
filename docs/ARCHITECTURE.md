@@ -18,6 +18,8 @@ The Node route `src/app/api/[[...route]]/route.ts` delegates GETs to `src/server
 
 ## Persistence
 
+The GitHub-linked Vercel project is `glyph-chan` in `chanchans-projects-aada625f`. Main deploys to production and feature branches deploy as previews. The project uses Next.js framework detection and Node 24. Deployments serve guest specimens without a database connection.
+
 `src/db/schema.ts` defines the schema. `src/db/client.ts` opens a Neon HTTP connection on demand. Migrations live in `drizzle/`. The shell does not write to a database.
 
 | Relation | Columns and constraints |
