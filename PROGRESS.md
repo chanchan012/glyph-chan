@@ -16,7 +16,15 @@ Completed November 18, 2026. Feature commit `8104fd6` merged into `main` at `2dd
 | Vercel production | READY at [glyph-chan.vercel.app](https://glyph-chan.vercel.app), deployment `dpl_5BfPZUyq7GVVYVQ29k7Nvecrx6Rc` |
 | Vercel feature preview | READY at [feature preview](https://glyph-chan-mtkjhnk0o-chanchans-projects-aada625f.vercel.app), deployment `dpl_DSEn8eBH5crm8dM7uxqqg4Pqd7EK` |
 
-The initial deployment is in guest mode. The Neon migration was generated and checked in. Live Clerk sign-in, live Redis quotas, and application of the migration to a selected Neon database remain environment-dependent verification steps.
+The initial deployment was in guest mode.
+
+## Provider setup · November 19, 2026
+
+Created the `glyph` database on the production branch of Neon project `still-bird-86777802`. Applied migration `0000_eminent_ares` and verified its Drizzle ledger entry and the `collections`, `glyphs`, and `kerning_pairs` tables. Verified a Neon HTTP connection as `glyph_runtime` and CRUD grants on those three tables.
+
+Configured Vercel Production with the dedicated Glyph Clerk development instance, the existing free `kinora` Upstash Redis database, and the pooled `glyph_runtime` connection. Clerk production credentials require a custom domain with DNS control. Preview deployments continue to serve the guest specimen lab.
+
+Verified that the Clerk sign-in and sign-up forms render on the public site. Confirmed that unauthenticated account requests return 401, and that the live Upstash limiter returns 429 with Retry-After at 60 requests in the same guest window. An authenticated account session still needs a live smoke test.
 
 ## Remaining milestones
 

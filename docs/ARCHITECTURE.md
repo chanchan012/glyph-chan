@@ -22,6 +22,8 @@ The GitHub-linked Vercel project is `glyph-chan` in `chanchans-projects-aada625f
 
 `src/db/schema.ts` defines the schema. `src/db/client.ts` opens a Neon HTTP connection on demand. Migrations live in `drizzle/`. The shell does not write to a database.
 
+The deployed database is `glyph` on the production branch of Neon project `still-bird-86777802`. The initial migration is recorded in `drizzle.__drizzle_migrations`. Vercel Production connects through the pooled endpoint as `glyph_runtime`, which has SELECT, INSERT, UPDATE, and DELETE on the three Glyph tables. The migration owner manages schema changes and grants access to new tables explicitly.
+
 | Relation | Columns and constraints |
 | --- | --- |
 | collections | UUID primary key; indexed Clerk owner_id; required name and kind (typeface or icon_set); positive units_per_em default 1000; ascender 800, descender −200, cap_height 700, x_height 500; created_at and updated_at default to now. |
