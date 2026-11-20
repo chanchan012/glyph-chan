@@ -25,11 +25,13 @@ For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-c
 ## Acceptance commands
 
 1. Run `npm run typecheck` and `npm test`.
-2. Run `npx playwright install chromium` once and `npm run test:e2e`. On Windows with Edge installed, set `$env:PLAYWRIGHT_CHANNEL='msedge'` to use it. Playwright starts its own guest-only server on port 3211.
+2. Run `npx playwright install chromium` once and `npm run test:e2e`. On Windows with Edge installed, set `$env:PLAYWRIGHT_CHANNEL='msedge'` to use it. Playwright builds the production bundle and starts its own guest-only server on port 3211.
 3. Run `npm run build`. Verify deployment in Vercel. Test live sign-in and member RPC after configuring credentials.
 
 ## Next subgoal
 
 Resume from the tested foundation on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) to inspect the shell. Manage keys for the linked deployment in [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables). After setting credentials and redeploying, sign in and request /api/account in the same browser. Verify that the response contains your Clerk user ID and that the Redis limiter records the request.
 
-Branch from main for 2.2. Give the 3–5 bullet brief, then build `/studio/[id]` with a glyph matrix, vector canvas, pen and node tools, and optical guides. Use `createFoundryStore` from `src/lib/foundry/store.ts` and the shared contour and geometry helpers in `src/lib/vector/`. Convert pointer coordinates through the inverse SVG transform. Keep pointer-drag preview local and dispatch one attributed command at the end of the drag. In the studio model the baseline is y=0, so a guide with a positive font height appears above it at negative y. Add browser tests for anchor and handle dragging and verify that the studio fits within 100dvh. Later milestones and their order are listed in PROGRESS.md.
+Open `/studio/demo` to resume editing a guest draft, or select a member collection from the dashboard. Use the Inspector to edit bearings and optical guides, combine contours, or paste canonical SVG path data. Drafts are stored locally until shared autosave is implemented in M4.1.
+
+Branch from main for 3.1. Build the waterfall preview, kerning editor, and optical stroke-weight analyzer on the existing `GlyphFoundryState`. Apply explicit pair adjustments to advance positions and preview the actual edited contours. Keep guide coordinates SVG y-down and metrics in font units. Add Vitest coverage for pair positioning, spacing, and stem width, plus browser coverage for preview and editor interaction. Later milestones and their order are listed in PROGRESS.md.

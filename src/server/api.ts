@@ -7,6 +7,7 @@ import { Redis } from "@upstash/redis";
 import { clerkKeys } from "./config";
 import { collectionId, collectionInput, collectionUpdate } from "../lib/collections";
 import { collectionStore, type CollectionStore } from "./collections";
+import { loadStudio } from "./studio";
 import { requestThumbnail } from "../inngest/client";
 
 type Bindings = { Variables: { userId: string | null } };
@@ -15,6 +16,7 @@ interface Services {
   identify: MiddlewareHandler<Bindings>;
   limit: (key: string) => Promise<Decision | null>;
   collections?: CollectionStore;
+  loadStudio?: typeof loadStudio;
   requestThumbnail?: typeof requestThumbnail;
 }
 
@@ -91,6 +93,12 @@ export function createApi(services: Services = { identify, limit }) {
       return userId ? c.json({ userId }) : c.json({ error: "authentication_required" }, 401);
     })
     .get("/collections", async c => c.json({ collections: await store.list(c.get("userId")!) }))
+    .get("/collections/:id/studio", async c => {
+      const id = collectionId.safeParse(c.req.param("id"));
+      if (!id.success) return c.json({ error: "invalid_collection" }, 400);
+      const studio = await (services.loadStudio ?? loadStudio)(c.get("userId")!, id.data);
+      return studio ? c.json({ studio }) : c.json({ error: "collection_not_found" }, 404);
+    })
     .post("/collections", validator("json", (body, c) => {
       const input = collectionInput.safeParse(body);
       return input.success ? input.data : c.json({ error: "invalid_collection" }, 400);

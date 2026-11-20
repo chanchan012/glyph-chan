@@ -25,7 +25,7 @@ export function Foundry({demo=false}: {demo?: boolean}) {
           <div className="eyebrow"><span className="tiny-line"/>{demo?"GUEST SPECIMEN LAB":"COLLABORATIVE TYPE FOUNDRY"}</div>
           <h1>{demo?<>Specimen<br/><em>lab.</em></>:<>Type takes<br/><em>shape.</em></>}</h1>
           <p>{demo?"Inspect each letterform in outline, toggle its optical guides, and compare the four specimen studies.":"A shared workspace for humans and AI to shape letterforms, draw vector icons, and build custom typefaces."}</p>
-          <div className="hero-actions">{demo?<><button className="primary" aria-pressed={outline} onClick={()=>setOutline(!outline)}>{outline?"Show fill":"Show outline"} <Arrow/></button><a className="text-link" href="/">Back to foundry</a></>:<><a className="primary" href="/demo">Open guest demo <Arrow diagonal/></a><button className="text-link" onClick={showIndex}>Browse specimens</button></>}</div>
+          <div className="hero-actions">{demo?<><a className="primary" href="/studio/demo">Open in Studio <Arrow diagonal/></a><button className="text-link" aria-pressed={outline} onClick={()=>setOutline(!outline)}>{outline?"Show fill":"Show outline"}</button></>:<><a className="primary" href="/demo">Open guest demo <Arrow diagonal/></a><button className="text-link" onClick={showIndex}>Browse specimens</button></>}</div>
         </div>
         <figure className="plate" style={{"--plate":item.ink,"--letter":item.color} as CSSProperties}>
           <figcaption><span><i/>SPECIMEN VIEW</span><span>FIG. 0{index+1} / 04</span></figcaption>

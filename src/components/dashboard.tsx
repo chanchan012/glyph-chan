@@ -163,7 +163,7 @@ export function Dashboard() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img loading="lazy" alt="" src={"data:image/svg+xml," + encodeURIComponent(collection.thumbnail ?? createThumbnail(collection))} />
                 <div className="card-info">
-                  <div><p>{collectionLabels[collection.kind]}</p><h2>{collection.name}</h2></div>
+                  <div><p>{collectionLabels[collection.kind]}</p><h2><a href={"/studio/" + collection.id}>{collection.name}</a></h2></div>
                   {view === "member" && <div className="card-actions">
                     <button onClick={() => show({ action: "rename", collection })} aria-label={"Rename " + collection.name}>Rename</button>
                     <button onClick={() => show({ action: "delete", collection })} aria-label={"Delete " + collection.name}>Delete</button>
