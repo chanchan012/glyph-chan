@@ -14,6 +14,6 @@ export default defineConfig({
     url: "http://127.0.0.1:3211/api/health",
     reuseExistingServer:false,
     timeout:120000,
-    env: {NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:"",CLERK_SECRET_KEY:"",UPSTASH_REDIS_REST_URL:"",UPSTASH_REDIS_REST_TOKEN:""},
+    env: {NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:"",CLERK_SECRET_KEY:"",UPSTASH_REDIS_REST_URL:"",UPSTASH_REDIS_REST_TOKEN:"",INNGEST_DEV:"1"},
   },
 });

@@ -12,6 +12,7 @@ export const collections = pgTable("collections", {
   descender: integer().notNull().default(-200),
   capHeight: integer("cap_height").notNull().default(700),
   xHeight: integer("x_height").notNull().default(500),
+  thumbnail: text(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, t => [index("collections_owner_idx").on(t.ownerId), check("positive_em", sql`${t.unitsPerEm} > 0`)]);

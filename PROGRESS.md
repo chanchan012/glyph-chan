@@ -30,7 +30,7 @@ Verified that the Clerk sign-in and sign-up forms render on the public site. Con
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
-| 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Pending |
+| 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Implemented. Deployment verification pending. |
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Pending |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Pending |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Pending |

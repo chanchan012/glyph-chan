@@ -15,8 +15,12 @@ Copy `.env.example` to `.env.local` for local services. Vercel Production alread
 | DATABASE_URL | Neon branch → Connect → Postgres connection URI including required TLS settings |
 | UPSTASH_REDIS_REST_URL | Upstash Redis database → REST API endpoint |
 | UPSTASH_REDIS_REST_TOKEN | Same Redis database → read/write REST token, server only |
+| INNGEST_EVENT_KEY | Inngest → Manage → Event Keys, server only |
+| INNGEST_SIGNING_KEY | Inngest → Manage → Signing Key, server only |
 
 Use a domain whose DNS you control to activate Clerk production credentials. Both Clerk keys and Redis credentials are needed for authenticated RPC. The initial migration is already applied to `glyph` in Neon project `still-bird-86777802`. For future migrations, run `npm run db:migrate` with the migration owner's connection string for the intended database. The command loads .env.local and uses DATABASE_URL. Generate migrations after schema changes with `npm run db:generate`.
+
+For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-cli@latest dev -u http://localhost:3000/api/inngest` with a development database configured. To enable hosted jobs, add both Inngest keys in Vercel Production, redeploy, and sync `https://glyph-chan.vercel.app/api/inngest` in the same Inngest environment. Verify that a new collection triggers `render-collection-thumbnail` and that its saved preview appears. The hosted credentials are user-managed.
 
 ## Acceptance commands
 
@@ -28,4 +32,4 @@ Use a domain whose DNS you control to activate Clerk production credentials. Bot
 
 Resume from the tested foundation on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) to inspect the shell. Manage keys for the linked deployment in [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables). After setting credentials and redeploying, sign in and request /api/account in the same browser. Verify that the response contains your Clerk user ID and that the Redis limiter records the request.
 
-Branch from main for 1.2. Give the 3–5 bullet brief, implement owner-scoped dashboard CRUD for typefaces and icon sets, connect the landing shell, and wire Inngest specimen thumbnails. Use separate test database data, cover CRUD and job behavior in Vitest, and cover dashboard grid and viewport geometry in Playwright. Merge after tests, build, deploy and update all three handoff documents. Later milestones and their order are listed in PROGRESS.md.
+Branch from main for 2.1. Give the 3–5 bullet brief, then implement deterministic glyph state, attributed commands with undo/redo, an SVG path parser and serializer, and Bézier and boolean operations. Keep document coordinates distinct from SVG viewport coordinates. Run Vitest path-math tests and the Playwright regression suite before merging and deploying. Later milestones and their order are listed in PROGRESS.md.

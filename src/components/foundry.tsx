@@ -15,7 +15,8 @@ export function Foundry({demo=false}: {demo?: boolean}) {
   return <div className="shell">
     <header className="mast"><div className="wrap mast-inner"><Brand/><nav aria-label="Main navigation">
       <a className="home-nav" href="/" aria-current={demo?undefined:"page"}>Foundry</a>
-      <button onClick={showIndex}>Specimen index</button>
+      <button className="index-nav" onClick={showIndex}>Specimen index</button>
+      <a className="dashboard-nav" href="/dashboard">Dashboard</a>
       <a className="sign-link" href="/sign-in">Sign in <Arrow diagonal/></a>
     </nav></div></header>
     <main className="wrap landing">

@@ -14,6 +14,21 @@ The Node route `src/app/api/[[...route]]/route.ts` delegates GETs to `src/server
 | /api/session | `{mode:"guest"}` or `{mode:"member",userId:string}` |
 | /api/account | `{userId:string}` or 401 `{error:"authentication_required"}` |
 
+## Collections dashboard
+
+`/dashboard` shows a responsive, internally scrollable collection grid. Guests browse sample data and can enter Clerk sign-in. Authenticated members use the typed Hono client and see only their collections. Clerk sign-in and sign-up default to the dashboard.
+
+| Route | Input and output |
+| --- | --- |
+| GET /api/collections | `{collections: Collection[]}` |
+| POST /api/collections | `{name,kind}` → 201 `{collection}` |
+| PATCH /api/collections/:id | UUID and `{name}` → 200 `{collection}` |
+| DELETE /api/collections/:id | UUID → 204. Cascades to its glyphs and kerning pairs. |
+
+A `Collection` contains `id`, `name`, `kind` (`typeface` or `icon_set`), `updatedAt` (ISO string), and `thumbnail` (SVG string or null). The API checks the verified Clerk subject on every query. Mutations require a same-origin request. Cross-owner mutations return 404.
+
+Inngest serves `glyph-foundry` at `/api/inngest`. The `glyph/thumbnail.requested` event contains the collection UUID and verified owner ID. The worker renders an escaped SVG specimen and conditionally updates the row where the owner, name, and kind match. Updates clear the thumbnail before queuing a fresh job. An hourly repair function finds pending thumbnails in bounded batches. The browser uses a deterministic SVG fallback until the saved preview is available.
+
 `AppType` is exported for Hono RPC consumers. `createApi` accepts identity and rate-limit adapters for isolated tests. The requested `@hono/clerk-auth` adapter is deprecated upstream in favor of `@clerk/hono`.
 
 ## Persistence
@@ -26,8 +41,8 @@ The deployed database is `glyph` on the production branch of Neon project `still
 
 | Relation | Columns and constraints |
 | --- | --- |
-| collections | UUID primary key; indexed Clerk owner_id; required name and kind (typeface or icon_set); positive units_per_em default 1000; ascender 800, descender −200, cap_height 700, x_height 500; created_at and updated_at default to now. |
+| collections | UUID primary key, indexed Clerk owner_id, required name and kind (typeface or icon_set), positive units_per_em default 1000, ascender 800, descender −200, cap_height 700, x_height 500, created_at and updated_at default to now, nullable thumbnail text. |
 | glyphs | UUID primary key; collection_id FK with cascade; unique (collection_id, key); paths JSONB array of SVG path strings default []; advance_width 600; left_bearing and right_bearing 50; revision 0. |
 | kerning_pairs | collection_id FK with cascade; unique (collection_id, left_key, right_key); required signed integer adjustment in font units. |
 
-Collection handlers in 1.2 must scope every query to the verified owner and set updated_at on writes. The static specimen studies use SVG coordinates with the y-axis down. Font metrics use positive ascenders and negative descenders. The future path engine owns conversion between those spaces.
+The static specimen studies use SVG coordinates with the y-axis down. Font metrics use positive ascenders and negative descenders. The path engine owns conversion between those spaces.
