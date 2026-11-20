@@ -47,4 +47,6 @@ Use Export in the studio to download WOFF2, TrueType, an SVG sprite, a React ZIP
 
 ## Remaining verification
 
-The user manages `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY`. Once both are added to Vercel Production, redeploy and sync the hosted Inngest endpoint. Create a disposable collection and verify the thumbnail worker succeeds. Add an outlined glyph and verify a member WOFF2 export moves from queued to ready and yields a file beginning with `wOF2`. Direct exports and local worker tests are already verified.
+The user manages `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY`. Once both are added to Vercel Production, redeploy and sync `https://glyph-chan.vercel.app/api/inngest` in the Inngest production environment. Confirm the app registers both rendering workers, both repair workers, and the export failure handler. Using a temporary signed-in collection, verify the thumbnail worker succeeds and that a WOFF2 export with an outlined glyph moves from queued to ready and yields a file beginning with `wOF2`. Remove the temporary collection afterward.
+
+To rerun the local worker checks, use `npm test -- tests/unit/collections.test.ts tests/unit/exports.test.ts`. These exercise the Inngest worker definitions with test storage, including WOFF2 compilation and terminal failure handling. The production direct export was verified separately.

@@ -80,10 +80,19 @@ The studio creates a revocable, seven-day bearer token for one agent per collect
 
 Passed strict TypeScript, 48 Vitest cases, 31 Playwright cases, the merged production build, and the production dependency audit. The end-to-end test used real HTTP and stdio clients, a PostgreSQL test database, and an SSE browser connection. It generated two lowercase glyphs from uppercase coordinates and verified the live outline, anchor highlight, and attribution. The signed-in production smoke test verified Clerk, Neon autosave, Redis presence across tabs, MCP discovery and attributed edits, and revoked-token rejection. The temporary test collection and Clerk account were removed.
 
+## M3.2 follow-up · Inngest worker verification
+
+Merged `codex/inngest-worker-verification` into `main` at `6d9de6a`. The [production site](https://glyph-chan.vercel.app) and [worker preview](https://glyph-chan-kdayv04fe-chanchans-projects-aada625f.vercel.app) are ready. A production API smoke test downloaded a one-glyph font and verified the `wOF2` header.
+
+Inngest's test engine now exercises the actual thumbnail and export functions with test persistence. It checks that the thumbnail worker saves an SVG and the export worker publishes a downloadable WOFF2. The export failure handler marks a job failed after retries are exhausted. Its regression test checks idempotence and confirms a completed download is preserved. Strict TypeScript, 49 Vitest cases, 31 Playwright cases, the merged build, and the production dependency audit passed. Playwright verified five Inngest registrations, including the generated failure handler.
+
+Vercel Production is still missing both user-managed Inngest variables, and the Inngest production environment has no Glyph app registered. Hosted thumbnail and WOFF2 execution remains pending.
+
 ## Milestone status
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
+| 1.1 | Foundation, auth, Hono RPC, rate limiting and database | Deployed and verified |
 | 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed. Hosted Inngest smoke test awaits keys. |
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Deployed and verified |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |

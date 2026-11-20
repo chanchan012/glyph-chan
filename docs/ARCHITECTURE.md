@@ -92,6 +92,8 @@ The font compiler builds OpenType glyphs with the studio's advance and visible l
 
 Guest exports and member exports where Inngest is unavailable return the artifact directly. When Inngest and Upstash are configured, a member request gets a 202 with a job UUID. The `glyph/export.requested` event carries only that UUID. Upstash stores the private snapshot, status and artifact as separate keys under `glyph:exports:v1:` for 24 hours. The export worker publishes status and artifact atomically, and a repair worker retries queued submissions that predate its execution by two minutes. GET `/api/exports/:id` and GET `/api/exports/:id/download` check the job owner. The API limits request bodies to 1 MB and downloadable artifacts to 3 MB. The current browser tab keeps the last background job ID in session storage.
 
+When compilation exhausts its Inngest retries, the registered failure handler reads the job ID from the original event and atomically marks a still-queued job as failed. The transition clears its saved snapshot and pending queue entry. Completed jobs retain their ready state and artifact. The browser and MCP both display the terminal failure and allow a new export.
+
 ## MCP transports and collection credentials
 
 `/api/mcp` uses the MCP v2 server and Hono adapter with stateless Streamable HTTP. Clients send `Authorization: Bearer <token>`. A supplied Origin must match the public application origin. The shared Upstash limiter gives the MCP endpoint separate per-IP and per-collection buckets. `node scripts/glyph-mcp.mjs` serves stdio, relaying resources and tools to the same HTTP endpoint over HTTPS or local HTTP.
