@@ -9,6 +9,8 @@ import { collectionId, collectionInput, collectionUpdate } from "../lib/collecti
 import { collectionStore, type CollectionStore } from "./collections";
 import { loadStudio } from "./studio";
 import { requestThumbnail } from "../inngest/client";
+import { createExportRoutes, type ExportServices } from "./export-routes";
+import { requestOrigin } from "./request-origin";
 
 type Bindings = { Variables: { userId: string | null } };
 type Decision = { success: boolean; reset: number };
@@ -18,13 +20,14 @@ interface Services {
   collections?: CollectionStore;
   loadStudio?: typeof loadStudio;
   requestThumbnail?: typeof requestThumbnail;
+  exports?: ExportServices;
 }
 
 const identify: Services["identify"] = async (c, next) => {
   const keys = clerkKeys();
   c.set("userId", null);
   if (!keys) return next();
-  const origin = new URL(c.req.url).origin;
+  const origin = requestOrigin(c.req.raw);
   return clerkMiddleware({ ...keys, authorizedParties: [origin] })(c, async () => {
     c.set("userId", getAuth(c)?.userId ?? null);
     await next();
@@ -78,12 +81,13 @@ export function createApi(services: Services = { identify, limit }) {
   });
   app.use("/collections/*", async (c, next) => {
     if (!c.get("userId")) return c.json({ error: "authentication_required" }, 401);
-    if (c.req.method !== "GET" && c.req.header("Origin") !== new URL(c.req.url).origin) {
+    if (c.req.method !== "GET" && c.req.header("Origin") !== requestOrigin(c.req.raw)) {
       return c.json({ error: "origin_not_allowed" }, 403);
     }
     await next();
   });
-  return app.get("/health", c => c.json({ service: "glyph", status: "ok" } as const))
+  return app.route("/exports", createExportRoutes(services.exports))
+    .get("/health", c => c.json({ service: "glyph", status: "ok" } as const))
     .get("/session", c => {
       const userId = c.get("userId");
       return userId ? c.json({ mode: "member", userId } as const) : c.json({ mode: "guest" } as const);

@@ -9,6 +9,7 @@ import { Arrow, Brand } from "../marks";
 import { StudioCanvas } from "./canvas";
 import { GlyphPanel, MetricsPanel } from "./panels";
 import { ProofWorkspace } from "./proof";
+import { ExportPanel } from "./export-panel";
 import type { Curve, Tool } from "./studio-geometry";
 
 const tools: { value: Tool; label: string }[] = [
@@ -126,6 +127,7 @@ export function Studio({ source }: { source: StudioSource }) {
         <button onClick={() => { store.getState().redo(); setFeedback(""); }} disabled={!canRedo}>Redo</button>
         {!proof && <button aria-pressed={guides} onClick={() => setGuides(value => !value)}>Guides</button>}
         {source.kind === "typeface" && <button aria-pressed={proof} onClick={() => setProof(value => !value)}>Specimen</button>}
+        <ExportPanel source={source} document={document} />
       </div>
     </div>
     <div className="studio-tabs" role="group" aria-label="Studio panel" hidden={proof}>
