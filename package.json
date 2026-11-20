@@ -15,6 +15,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
+  "overrides": {
+    "inngest": { "zod": "$zod" },
+    "rimraf": "6.1.4"
+  },
   "dependencies": {
     "@clerk/nextjs": "^7.10.2",
     "@fontsource-variable/dm-sans": "^5.3.0",
@@ -26,6 +30,7 @@
     "@upstash/redis": "^1.41.0",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.19",
+    "inngest": "^4.26.2",
     "next": "^16.4.6",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

@@ -1,0 +1,118 @@
+.dashboard {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: clamp(10px, 3dvh, 30px);
+  padding-block: clamp(16px, 5dvh, 52px) 18px;
+}
+.dashboard-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dashboard-heading h1 {
+  font-size: clamp(46px, 8vw, 108px);
+  line-height: .9;
+  letter-spacing: -.059em;
+}
+.dashboard-heading p {
+  margin-top: 12px;
+  color: var(--muted);
+}
+.collection-toolbar {
+  display: flex;
+  gap: clamp(12px, 3vw, 44px);
+  border-bottom: 1px solid var(--rule);
+}
+.collection-toolbar button {
+  padding: 10px 0;
+  border-bottom: 2px solid transparent;
+  font-size: clamp(12px, 1.8vw, 15px);
+}
+.collection-toolbar button[aria-pressed="true"] {
+  color: var(--wine);
+  border-color: var(--wine);
+  font-weight: 650;
+}
+.dashboard-content {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 4px 4px 12px;
+  margin-inline: -4px;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(248px, 100%), 1fr));
+  gap: clamp(12px, 2vw, 24px);
+}
+.collection-card {
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  overflow: hidden;
+  background: #fbfaf5;
+}
+.collection-card img {
+  width: 100%;
+  aspect-ratio: 400 / 168;
+  display: block;
+}
+.card-info { padding: 16px; }
+.card-info p {
+  font: 11px var(--mono);
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.card-info h2 {
+  font-size: clamp(21px, 3vw, 30px);
+  line-height: 1.09;
+  overflow-wrap: anywhere;
+}
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+.card-actions button {
+  min-height: 32px;
+  font-size: 13px;
+  color: var(--wine);
+}
+.card-actions button:hover { text-decoration: underline; }
+.dashboard-message {
+  padding: 30px 18px;
+  border: 1px dashed var(--rule);
+  color: var(--muted);
+}
+.dashboard-message button { margin-top: 10px; }
+.collection-dialog form { display: grid; gap: 14px; }
+.collection-dialog .dialog-head { margin: 0; }
+.collection-dialog label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.collection-dialog input, .collection-dialog select {
+  min-height: 44px;
+  width: 100%;
+  padding: 6px 9px;
+  color: var(--ink);
+  background: #fbfaf5;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+.collection-dialog .form-error { color: var(--wine); }
+.dialog-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; }
+@media (max-width: 720px) {
+  .dashboard-heading p { margin-top: 8px; font-size: 14px; }
+  .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .card-info { padding: 10px; }
+  .card-info h2 { font-size: 20px; }
+  .card-actions { gap: 8px; margin-top: 6px; }
+  .card-actions button { font-size: 12px; }
+}
