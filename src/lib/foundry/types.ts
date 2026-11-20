@@ -21,12 +21,19 @@ export interface Glyph {
   metrics: GlyphMetrics;
 }
 
+export interface KerningPair {
+  left: string;
+  right: string;
+  adjustment: number;
+}
+
 export interface GlyphFoundryState {
   id: string;
   kind: CollectionKind;
   revision: number;
   metrics: FoundryMetrics;
   glyphs: Record<string, Glyph>;
+  kerning: KerningPair[];
 }
 
 type ContourTarget = { key: string; contour: number };
@@ -46,6 +53,7 @@ export type FoundryCommand =
   | ({ type: "transformContours"; indices?: number[]; matrix: Matrix } & GlyphTarget)
   | ({ type: "applyBoolean"; operation: BooleanOperation; subject: number[]; clip: number[] } & GlyphTarget)
   | ({ type: "setGlyphMetrics"; metrics: GlyphMetrics } & GlyphTarget)
+  | ({ type: "setKerningPair" } & KerningPair)
   | { type: "setFoundryMetrics"; metrics: FoundryMetrics };
 
 export interface CommandAttribution {

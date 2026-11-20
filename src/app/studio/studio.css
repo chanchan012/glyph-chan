@@ -69,6 +69,7 @@
   min-height: 0;
   min-width: 0;
 }
+.studio-workspace[hidden], .studio-tabs[hidden] { display: none; }
 .studio-center { background: #241a21; min-width: 0; min-height: 0; display: flex; padding: clamp(8px, 1.4vw, 18px); }
 .studio-rail { background: #f9f5ed; overflow: auto; overscroll-behavior: contain; min-height: 0; }
 .rail-glyphs { border-right: 1px solid var(--studio-line); }

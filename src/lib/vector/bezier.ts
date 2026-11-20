@@ -61,7 +61,7 @@ function derivativeRoots(from: number, first: number, second: number, end: numbe
   return [major / a, c / major];
 }
 
-function extrema(from: Point, segment: Segment, axis: keyof Point) {
+export function segmentExtrema(from: Point, segment: Segment, axis: keyof Point) {
   const start = from[axis];
   const end = segment.to[axis];
   if (segment.kind === "line") return [];
@@ -89,7 +89,7 @@ export function pathBounds(contours: readonly Contour[]): Bounds | null {
     extend(from);
     for (const segment of contour.segments) {
       extend(segment.to);
-      for (const root of [...extrema(from, segment, "x"), ...extrema(from, segment, "y")]) {
+      for (const root of [...segmentExtrema(from, segment, "x"), ...segmentExtrema(from, segment, "y")]) {
         if (root > 0 && root < 1) extend(evaluateSegment(from, segment, root));
       }
       from = segment.to;

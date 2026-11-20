@@ -36,7 +36,7 @@ export function createFoundry(
   metrics: FoundryMetrics = defaultMetrics,
 ): GlyphFoundryState {
   if (!id.trim()) throw new RangeError("A foundry ID is required.");
-  return freeze({ id, kind, revision: 0, metrics: foundryMetrics(metrics), glyphs: {} }, true);
+  return freeze({ id, kind, revision: 0, metrics: foundryMetrics(metrics), glyphs: {}, kerning: [] }, true);
 }
 
 function requireGlyph(state: GlyphFoundryState, key: string): Glyph {
@@ -99,6 +99,22 @@ function replaceHandle(segment: Segment, handle: "control" | "control1" | "contr
 }
 
 function edit(state: GlyphFoundryState, command: FoundryCommand) {
+  if (command.type === "setKerningPair") {
+    const { left, right, adjustment } = command;
+    if (state.kind !== "typeface") throw new RangeError("Only typefaces support kerning pairs.");
+    if (!integer(adjustment, -32768, 32767)) throw new RangeError("Invalid kerning adjustment.");
+    requireGlyph(state, left);
+    requireGlyph(state, right);
+    const index = state.kerning.findIndex(pair => pair.left === left && pair.right === right);
+    if (index >= 0) {
+      if (adjustment === 0) state.kerning.splice(index, 1);
+      else state.kerning[index].adjustment = adjustment;
+    } else if (adjustment !== 0) {
+      const successor = state.kerning.findIndex(pair => pair.left > left || (pair.left === left && pair.right > right));
+      state.kerning.splice(successor < 0 ? state.kerning.length : successor, 0, { left, right, adjustment });
+    }
+    return;
+  }
   if (command.type === "setFoundryMetrics") {
     Object.assign(state.metrics, foundryMetrics(command.metrics));
     return;
@@ -118,6 +134,9 @@ function edit(state: GlyphFoundryState, command: FoundryCommand) {
   switch (command.type) {
     case "deleteGlyph":
       delete state.glyphs[command.key];
+      if (state.kerning.some(pair => pair.left === command.key || pair.right === command.key)) {
+        state.kerning = state.kerning.filter(pair => pair.left !== command.key && pair.right !== command.key);
+      }
       break;
     case "replaceContours":
       glyph.contours = command.contours.map(copyContour);
