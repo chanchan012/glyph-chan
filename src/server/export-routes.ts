@@ -5,9 +5,9 @@ import { validator } from "hono/validator";
 import { z } from "zod";
 import { collections } from "../db/schema";
 import { connectDatabase } from "../db/client";
-import { requestExport } from "../inngest/exports";
 import { exportRequest, ExportInputError, type ExportArtifact, type ExportRequest } from "../lib/exports/contracts";
 import { canQueueExports, exportJobStore, type ExportJobStore } from "./export-jobs";
+import { queueExport } from "./queue-export";
 import { requestOrigin } from "./request-origin";
 
 async function findCollection(ownerId: string, id: string): Promise<Pick<ExportRequest, "name" | "kind"> | null> {
@@ -55,14 +55,7 @@ export function createExportRoutes(services: ExportServices = {}) {
         if (!collection || collection.kind !== input.kind) return c.json({ error: "collection_not_found" }, 404);
         input = { ...input, name: collection.name };
         if (available()) {
-          const id = crypto.randomUUID();
-          await store.create({ id, ownerId, createdAt: Date.now(), state: "queued" }, input);
-          try {
-            await (services.enqueue ?? requestExport)(id);
-          } catch (error) {
-            console.error("Could not enqueue Glyph export", { id, cause: (error as Error).name });
-          }
-          return c.json({ id, state: "queued" } as const, 202);
+          return c.json(await queueExport(ownerId, input, store, services.enqueue), 202);
         }
       }
       try {

@@ -11,6 +11,7 @@ import { StudioCanvas } from "./canvas";
 import { GlyphPanel, MetricsPanel } from "./panels";
 import { ProofWorkspace } from "./proof";
 import { ExportPanel } from "./export-panel";
+import { McpSetup } from "./mcp-setup";
 import { useStudioSync } from "./use-studio-sync";
 import type { Curve, Tool } from "./studio-geometry";
 
@@ -118,6 +119,7 @@ export function Studio({ source }: { source: StudioSource }) {
         {!proof && <button aria-pressed={guides} onClick={() => setGuides(value => !value)}>Guides</button>}
         {source.kind === "typeface" && <button aria-pressed={proof} onClick={() => setProof(value => !value)}>Specimen</button>}
         <ExportPanel source={source} document={document} />
+        {sync.enabled && <McpSetup collectionId={source.id} />}
       </div>
     </div>
     {sync.conflicts.length > 0 && <div className="studio-conflict" role="group" aria-label="Resolve concurrent edits">
@@ -154,6 +156,9 @@ export function Studio({ source }: { source: StudioSource }) {
           {sync.peers.slice(0, 3).map(peer => <span key={peer.clientId} className={"roster-" + peer.actor.kind}>
             {peer.actor.label}{peer.glyph ? " · " + peer.glyph : ""}
           </span>)}
+          {sync.lastReceipt?.actor.kind === "agent" && <span title="Most recent saved edit" className="roster-agent">
+            Edited by {sync.lastReceipt.actor.label}
+          </span>}
         </div>
         : <span>{source.ownerId === "guest" ? "Guest draft" : "Collection draft"}</span>}
       <span role="status">{sync.status}</span>
