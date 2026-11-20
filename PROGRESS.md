@@ -32,7 +32,7 @@ Merged `feat/dashboard-collections` into `main` at `ca1ceff`. Production serves 
 
 Strict TypeScript, 11 Vitest cases, 14 Playwright cases, the production build, and the production dependency audit passed. The browser suite checks five dashboard viewports and exercises member CRUD against intercepted RPC responses. Vitest exercises owner isolation, origin and input validation, and the thumbnail job's rendering and stale-write handling.
 
-Neon migration `0001_messy_jackpot` is applied. Verified the nullable `collections.thumbnail` column and runtime role's update grant. Hosted Inngest job execution awaits the user-managed keys and sync. The dashboard shows a local SVG specimen while a saved thumbnail is pending.
+Neon migration `0001_messy_jackpot` is applied. Verified the nullable `collections.thumbnail` column and runtime role's update grant. A signed-in production test verified that the Inngest worker saves a thumbnail for a newly created collection. The dashboard shows a local SVG specimen while a saved thumbnail is pending.
 
 ## M2.1 · Vector path and command engine
 
@@ -60,7 +60,7 @@ Passed strict TypeScript, 34 Vitest cases, 25 Playwright cases, and the merged p
 
 Merged `feat/font-and-icon-export` into `main` at `980c095`. The [production studio](https://glyph-chan.vercel.app/studio/demo) and [feature preview](https://glyph-chan-6oce8l51w-chanchans-projects-aada625f.vercel.app/studio/demo) are ready. A production browser smoke test downloaded `forma-serif.woff2` from the guest studio and verified its `wOF2` signature.
 
-The studio exports TrueType, WOFF2, SVG sprites, React icon ZIPs, and specimen SVGs from the current draft. Inngest uses the existing Upstash instance for private compilation snapshots, status and expiring downloads. Direct compilation is available to guests and on deployments that await Inngest configuration. Hosted workers await the user-managed event and signing keys and app sync.
+The studio exports TrueType, WOFF2, SVG sprites, React icon ZIPs, and specimen SVGs from the current draft. Inngest uses the existing Upstash instance for private compilation snapshots, status and expiring downloads. Hosted compilation is active in production. Guests and deployments without Inngest configuration use direct compilation.
 
 Passed 41 Vitest cases, 29 Playwright cases, the merged production build, and the production dependency audit. Tests verified SFNT tables, WOFF2 round-trip decoding, Chromium font loading and kerning, escaped SVG and React ZIP entries, job authorization and idempotence, and local Inngest worker registration.
 
@@ -86,17 +86,23 @@ Merged `codex/inngest-worker-verification` into `main` at `6d9de6a`. The [produc
 
 Inngest's test engine now exercises the actual thumbnail and export functions with test persistence. It checks that the thumbnail worker saves an SVG and the export worker publishes a downloadable WOFF2. The export failure handler marks a job failed after retries are exhausted. Its regression test checks idempotence and confirms a completed download is preserved. Strict TypeScript, 49 Vitest cases, 31 Playwright cases, the merged build, and the production dependency audit passed. Playwright verified five Inngest registrations, including the generated failure handler.
 
-Vercel Production is still missing both user-managed Inngest variables, and the Inngest production environment has no Glyph app registered. Hosted thumbnail and WOFF2 execution remains pending.
+## Production Inngest activation · November 21, 2026
+
+Redeployed after the owner added both Inngest keys and synced `glyph-foundry` to Inngest production. Vercel deployment `dpl_BhBqBQQxB8FyA1Uih4VxQh52F5o7` served the [production endpoint](https://glyph-chan.vercel.app/api/inngest). Inngest sync `21731ef5-afe1-4230-93cb-d85642a6ecec` succeeded and registered the two rendering workers, the two repair workers, and the export failure handler.
+
+A signed-in production smoke test verified the stored SVG thumbnail and a WOFF2 download that decoded with the expected glyph and advance width. Inngest marked both runs complete. The thumbnail run was `01M7WVRTY5NW2CMZS053VT5HEJ` and the WOFF2 run was `01M7WVRWJMN58DGDT7WY6X6H37`. A second smoke test verified the queued TrueType, SVG sprite, specimen SVG, and React ZIP artifacts, and queued and retrieved WOFF2 through MCP. The temporary collections and accounts were removed.
+
+Strict TypeScript, 49 Vitest tests, 31 Playwright tests, and the production build passed. Playwright also checked the live landing, Clerk sign-in, Clerk sign-up, dashboard, and guest studio at 1440×900, 768×1024, 320×568, and 844×390 without page overflow.
 
 ## Milestone status
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
 | 1.1 | Foundation, auth, Hono RPC, rate limiting and database | Deployed and verified |
-| 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed. Hosted Inngest smoke test awaits keys. |
+| 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed and verified |
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Deployed and verified |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Deployed and verified |
-| 3.2 | Binary fonts, SVG and React export jobs | Deployed. Hosted Inngest smoke test awaits keys. |
+| 3.2 | Binary fonts, SVG and React export jobs | Deployed and verified |
 | 4.1 | Redis live presence, SSE and Neon autosave | Deployed and verified |
 | 4.2 | HTTP and stdio MCP resources, tools and setup | Deployed and verified |

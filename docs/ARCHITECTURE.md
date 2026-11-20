@@ -29,6 +29,8 @@ A `Collection` contains `id`, `name`, `kind` (`typeface` or `icon_set`), `update
 
 Inngest serves `glyph-foundry` at `/api/inngest`. The `glyph/thumbnail.requested` event contains the collection UUID and verified owner ID. The worker renders an escaped SVG specimen and conditionally updates the row where the owner, name, and kind match. Updates clear the thumbnail before queuing a fresh job. An hourly repair function finds pending thumbnails in bounded batches. The browser uses a deterministic SVG fallback until the saved preview is available.
 
+The Inngest production environment is synced with the Vercel production endpoint. Vercel Production supplies the owner-managed event and signing keys. Production registration includes thumbnail rendering, export compilation, both scheduled repair functions, and the export failure handler.
+
 `AppType` is exported for Hono RPC consumers. `createApi` accepts identity and rate-limit adapters for isolated tests. The requested `@hono/clerk-auth` adapter is deprecated upstream in favor of `@clerk/hono`.
 
 ## Persistence

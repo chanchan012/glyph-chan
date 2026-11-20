@@ -4,7 +4,7 @@
 
 Use Node 24 and npm. From the repository root, run `npm ci`, then `npm run dev`. Open `http://localhost:3000`. The public guest demo works with a blank environment.
 
-Copy `.env.example` to `.env.local` for local services. Vercel Production already has Clerk development-instance credentials, the shared `kinora` Redis endpoint and token, and the restricted Neon runtime connection. Use separate service credentials if enabling Preview integrations. Redeploy after changing Vercel variables because Next.js binds public Clerk configuration at build time.
+Copy `.env.example` to `.env.local` for local services. Vercel Production has Clerk development-instance credentials, the shared `kinora` Redis endpoint and token, the restricted Neon runtime connection, and the Inngest event and signing keys. Use separate service credentials if enabling Preview integrations. Redeploy after changing Vercel variables because Next.js binds public Clerk configuration at build time.
 
 | Variable | Source and use |
 | --- | --- |
@@ -20,7 +20,7 @@ Copy `.env.example` to `.env.local` for local services. Vercel Production alread
 
 Use a domain whose DNS you control to activate Clerk production credentials. Both Clerk keys and Redis credentials are needed for authenticated RPC. Migrations through `0002_supreme_kate_bishop` are applied to `glyph` in Neon project `still-bird-86777802`. For future migrations, run `npm run db:migrate` with the migration owner's connection string for the intended database. The command loads .env.local and uses DATABASE_URL. Generate migrations after schema changes with `npm run db:generate`.
 
-For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-cli@latest dev -u http://localhost:3000/api/inngest` with development Neon and Upstash credentials. To enable hosted jobs, add both Inngest keys in Vercel Production, redeploy, and sync `https://glyph-chan.vercel.app/api/inngest` in the same Inngest environment. Verify that a new collection triggers `render-collection-thumbnail` and that a member WOFF2 export triggers `compile-collection-export`. The hosted credentials are user-managed.
+For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-cli@latest dev -u http://localhost:3000/api/inngest` with development Neon and Upstash credentials. The production app `glyph-foundry` is synced to `https://glyph-chan.vercel.app/api/inngest`. When rotating the owner-managed keys in Vercel Production, redeploy and sync the same endpoint in the matching Inngest environment.
 
 ## Acceptance commands
 
@@ -30,13 +30,13 @@ For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-c
 
 ## Use the deployed studio
 
-The implementation is on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) or sign in to create and edit private collections. Manage Inngest activation in [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables).
+The implementation is on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) or sign in to create and edit private collections. Manage the Inngest keys in [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables).
 
 Open `/studio/demo` to resume a guest draft, or select a member collection from the dashboard. Use the Inspector to edit bearings and optical guides, combine contours, or paste canonical SVG path data. Member drafts autosave to Neon. Open the same collection in two signed-in tabs to see shared edits and active anchors.
 
 Open Specimen in a typeface studio to proof outlines at five sizes, preview and save kerning adjustments, or inspect stem widths and overshoot. Member autosave includes kerning, outlines, and metrics in one revision.
 
-Use Export in the studio to download WOFF2, TrueType, an SVG sprite, a React ZIP, or a specimen SVG. Background jobs are owner-scoped and the last job can be reopened in the same browser tab. Direct compilation remains available while hosted Inngest waits for keys and sync.
+Use Export in the studio to download WOFF2, TrueType, an SVG sprite, a React ZIP, or a specimen SVG. Signed-in collections use owner-scoped jobs in production. The last job can be reopened in the same browser tab. Guest exports compile directly.
 
 ## Connect an MCP client
 
@@ -45,8 +45,8 @@ Use Export in the studio to download WOFF2, TrueType, an SVG sprite, a React ZIP
 3. For stdio, configure the client to run `node scripts/glyph-mcp.mjs` from a checkout after `npm ci`. Set `GLYPH_MCP_URL` and `GLYPH_MCP_TOKEN` in the client environment. Keep the bearer token out of version control and revoke or rotate it from Agent access.
 4. Read `glyph://foundry-metrics` and a glyph path resource before mutating. Pass the observed revision as `expectedRevision` and a fresh UUID as `requestId`. Save a returned Inngest job ID, then call `trigger_woff2_compile` with `jobId` to check status and retrieve the artifact.
 
-## Remaining verification
+## Recheck hosted jobs
 
-The user manages `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY`. Once both are added to Vercel Production, redeploy and sync `https://glyph-chan.vercel.app/api/inngest` in the Inngest production environment. Confirm the app registers both rendering workers, both repair workers, and the export failure handler. Using a temporary signed-in collection, verify the thumbnail worker succeeds and that a WOFF2 export with an outlined glyph moves from queued to ready and yields a file beginning with `wOF2`. Remove the temporary collection afterward.
+Production thumbnail generation and all queued formats were verified, including WOFF2 through MCP. To repeat the smoke test after a provider or deployment change, create a temporary signed-in collection and verify that it receives a stored SVG thumbnail. Add an outlined glyph and submit a WOFF2 export. Confirm that the job moves from queued to ready, that the downloaded font begins with `wOF2`, and that it decodes with the expected glyph and advance width. Check the runs for `render-collection-thumbnail` and `compile-collection-export` in Inngest production. Remove the temporary collection afterward.
 
 To rerun the local worker checks, use `npm test -- tests/unit/collections.test.ts tests/unit/exports.test.ts`. These exercise the Inngest worker definitions with test storage, including WOFF2 compilation and terminal failure handling. The production direct export was verified separately.
