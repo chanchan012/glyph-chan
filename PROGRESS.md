@@ -26,11 +26,19 @@ Configured Vercel Production with the dedicated Glyph Clerk development instance
 
 Verified that the Clerk sign-in and sign-up forms render on the public site. Confirmed that unauthenticated account requests return 401, and that the live Upstash limiter returns 429 with Retry-After at 60 requests in the same guest window. An authenticated account session still needs a live smoke test.
 
+## M1.2 · Collections and specimen thumbnails
+
+Merged `feat/dashboard-collections` into `main` at `ca1ceff`. Production serves the [collections dashboard](https://glyph-chan.vercel.app/dashboard). Confirmed 200 for the dashboard and health endpoint and 401 for the anonymous collections API. The [feature preview](https://glyph-chan-4tmzpu2yg-chanchans-projects-aada625f.vercel.app/dashboard) was deployed separately.
+
+Strict TypeScript, 11 Vitest cases, 14 Playwright cases, the production build, and the production dependency audit passed. The browser suite checks five dashboard viewports and exercises member CRUD against intercepted RPC responses. Vitest exercises owner isolation, origin and input validation, and the thumbnail job's rendering and stale-write handling.
+
+Neon migration `0001_messy_jackpot` is applied. Verified the nullable `collections.thumbnail` column and runtime role's update grant. Hosted Inngest job execution awaits the user-managed keys and sync. The dashboard shows a local SVG specimen while a saved thumbnail is pending.
+
 ## Remaining milestones
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
-| 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Implemented. Deployment verification pending. |
+| 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed. Hosted Inngest smoke test awaits keys. |
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Pending |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Pending |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Pending |
