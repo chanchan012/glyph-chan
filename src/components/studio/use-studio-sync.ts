@@ -3,7 +3,7 @@ import type { StoreApi } from "zustand";
 import type { FoundryStore } from "@/lib/foundry/store";
 import { decodeStudioDraft, snapshotDocument, studioDocument, studioDraftKey, type StudioSource } from "@/lib/foundry/studio-source";
 import { mergeStudioSnapshots, sameSnapshot } from "@/lib/foundry/snapshot-merge";
-import { revisionSchema, saveStudioSchema, snapshotSchema, studioSnapshot, type PresenceInput,
+import { revisionSchema, saveStudioSchema, snapshotSchema, studioSnapshot, type PresenceInput, type StudioReceipt,
   type StudioPresence, type StudioSave, type StudioSnapshot } from "@/lib/foundry/sync-contract";
 
 type Checkpoint = { revision: number; snapshot: StudioSnapshot };
@@ -39,6 +39,7 @@ export function useStudioSync(source: StudioSource, store: StoreApi<FoundryStore
   const [message, setMessage] = useState("");
   const [conflicts, showConflicts] = useState<string[]>([]);
   const [peers, setPeers] = useState<StudioPresence[]>([]);
+  const [lastReceipt, setLastReceipt] = useState(source.receipts?.at(-1));
   const resolve = useRef<(choice: Choice) => void>(() => {});
   const retry = useRef<() => void>(() => {});
   const client = useRef("");
@@ -71,6 +72,10 @@ export function useStudioSync(source: StudioSource, store: StoreApi<FoundryStore
     client.current ||= crypto.randomUUID();
 
     const current = () => studioSnapshot(store.getState().document);
+    function showReceipt(receipt: StudioReceipt | undefined) {
+      if (!receipt) return;
+      setLastReceipt(previous => receipt.revision >= (previous?.revision ?? 0) ? receipt : previous);
+    }
     function replace(snapshot: StudioSnapshot) {
       if (sameSnapshot(snapshot, current())) return;
       mute = true;
@@ -161,6 +166,7 @@ export function useStudioSync(source: StudioSource, store: StoreApi<FoundryStore
       if (!response.ok) throw new Error("The shared collection is temporarily unavailable.");
       const { studio } = await response.json() as { studio: StudioSource };
       if (stopped) return;
+      showReceipt(studio.receipts?.at(-1));
       const latest = checkpoint(studio);
       // The GET can already include a newer commit than the queued notification.
       remoteRevision = Math.max(remoteRevision, latest.revision);
@@ -183,6 +189,7 @@ export function useStudioSync(source: StudioSource, store: StoreApi<FoundryStore
       if (response.status === 409 || response.ok) {
         const result = await response.json() as SaveResponse;
         if (stopped) return;
+        showReceipt(result.studio.receipts?.at(-1));
         pending = null;
         integrate(result.state === "saved" ? sent.snapshot : base.snapshot, checkpoint(result.studio));
         return;
@@ -259,8 +266,9 @@ export function useStudioSync(source: StudioSource, store: StoreApi<FoundryStore
     const stream = enabled ? new EventSource(room + "/events") : null;
     stream?.addEventListener("revision", event => {
       try {
-        const { revision } = JSON.parse((event as MessageEvent).data) as { revision: number };
+        const { revision, receipt } = JSON.parse((event as MessageEvent).data) as { revision: number; receipt?: StudioReceipt };
         if (Number.isSafeInteger(revision)) {
+          showReceipt(receipt);
           remoteRevision = Math.max(remoteRevision, revision);
           schedule(0);
         }
@@ -314,5 +322,5 @@ export function useStudioSync(source: StudioSource, store: StoreApi<FoundryStore
     };
   }, [enabled, room, ready, presence.glyph, presence.anchor?.contour, presence.anchor?.index]);
 
-  return { ready, status: labels[state], state, message, conflicts, peers, enabled, resolve, retry };
+  return { ready, status: labels[state], state, message, conflicts, peers, lastReceipt, enabled, resolve, retry };
 }

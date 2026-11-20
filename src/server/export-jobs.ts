@@ -8,7 +8,9 @@ const jobKey = (id: string) => prefix + id;
 
 type Status = { state: "queued" } | { state: "failed"; message: string }
   | { state: "ready"; filename: string; contentType: string };
-export type ExportJob = { id: string; ownerId: string; createdAt: number } & Status;
+export type ExportJob = {
+  id: string; ownerId: string; createdAt: number; collectionId?: string; format?: ExportRequest["format"];
+} & Status;
 type StoredArtifact = { filename: string; contentType: string; data: string };
 type Finished = Exclude<Status, { state: "queued" }>;
 

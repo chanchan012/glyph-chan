@@ -55,10 +55,11 @@ export const saveStudioSchema = z.object({
 export type StudioSave = z.infer<typeof saveStudioSchema>;
 
 const index = z.number().int().min(0).max(31_999);
+export const presenceAnchorSchema = z.object({ contour: index, index }).strict();
 export const presenceInput = z.object({
   clientId: clientIdSchema,
   glyph: key.nullable(),
-  anchor: z.object({ contour: index, index }).strict().nullable(),
+  anchor: presenceAnchorSchema.nullable(),
 }).strict();
 export type PresenceInput = z.infer<typeof presenceInput>;
 export type StudioPresence = PresenceInput & { actor: StudioActor; expiresAt: number };

@@ -2,8 +2,6 @@ import { Hono, type MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { validator } from "hono/validator";
 import { clerkMiddleware, getAuth } from "@hono/clerk-auth";
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 import { clerkKeys } from "./config";
 import { collectionId, collectionInput, collectionUpdate } from "../lib/collections";
 import { collectionStore, type CollectionStore } from "./collections";
@@ -12,16 +10,19 @@ import { requestThumbnail } from "../inngest/client";
 import { createExportRoutes, type ExportServices } from "./export-routes";
 import { requestOrigin } from "./request-origin";
 import { createStudioLiveRoutes, type StudioSyncServices } from "./studio-live-routes";
+import { createCredentialRoutes } from "./mcp/credential-routes";
+import type { AgentStore } from "./mcp/credentials";
+import { limitApi, retryAfter, type RateLimit } from "./rate-limit";
 
 type Bindings = { Variables: { userId: string | null } };
-type Decision = { success: boolean; reset: number };
 interface Services extends StudioSyncServices {
   identify: MiddlewareHandler<Bindings>;
-  limit: (key: string) => Promise<Decision | null>;
+  limit: RateLimit;
   collections?: CollectionStore;
   loadStudio?: typeof loadStudio;
   requestThumbnail?: typeof requestThumbnail;
   exports?: ExportServices;
+  agents?: AgentStore;
 }
 
 const identify: Services["identify"] = async (c, next) => {
@@ -35,23 +36,7 @@ const identify: Services["identify"] = async (c, next) => {
   });
 };
 
-let limiter: Ratelimit | undefined;
-const limit: Services["limit"] = async key => {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url && !token && !clerkKeys()) return null;
-  if (!url || !token) throw new Error("Rate limiter unavailable");
-  limiter ??= new Ratelimit({
-    redis: new Redis({ url, token }),
-    limiter: Ratelimit.slidingWindow(60, "1 m"),
-    prefix: "glyph:api:v1",
-  });
-  const result = await limiter.limit(key);
-  if (result.reason === "timeout") throw new Error("Rate limiter timed out");
-  return result;
-};
-
-export function createApi(services: Services = { identify, limit }) {
+export function createApi(services: Services = { identify, limit: limitApi }) {
   const app = new Hono<Bindings>().basePath("/api");
   const store = services.collections ?? collectionStore;
   const queue = services.requestThumbnail ?? requestThumbnail;
@@ -72,7 +57,7 @@ export function createApi(services: Services = { identify, limit }) {
     try {
       const result = await services.limit(userId ? "user:" + userId : "guest:" + (ip || "shared"));
       if (result && !result.success) {
-        c.header("Retry-After", String(Math.max(1, Math.ceil((result.reset - Date.now()) / 1000))));
+        c.header("Retry-After", retryAfter(result.reset));
         return c.json({ error: "rate_limited" }, 429);
       }
     } catch {
@@ -89,6 +74,7 @@ export function createApi(services: Services = { identify, limit }) {
   });
   return app.route("/exports", createExportRoutes(services.exports))
     .route("/collections", createStudioLiveRoutes(services))
+    .route("/collections", createCredentialRoutes(services.agents, services.studioRepository))
     .get("/health", c => c.json({ service: "glyph", status: "ok" } as const))
     .get("/session", c => {
       const userId = c.get("userId");
