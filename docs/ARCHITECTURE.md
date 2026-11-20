@@ -4,9 +4,9 @@
 
 Next.js 16 App Router serves `/` and `/demo` as public specimen surfaces. Four original contours live in `src/lib/specimens.ts`. Selection, fill/outline and guide visibility are transient browser state. The responsive shell occupies `100dvh`. A constrained panel permits internal scrolling for longer Clerk challenges. Typography is self-hosted through Fontsource.
 
-`src/proxy.ts` invokes Clerk on the page routes when both keys exist. The catch-all sign-in and sign-up pages mount ClerkProvider and Clerk's corresponding path-routed widget. The unconfigured shell offers a guest link. Account redirects currently land at the specimen demo.
+`src/proxy.ts` invokes Clerk on the page routes when both keys exist. The root layout mounts ClerkProvider when configured. The catch-all sign-in and sign-up pages render Clerk's corresponding path-routed widget and default to the dashboard. The unconfigured shell offers a guest link.
 
-The Node route `src/app/api/[[...route]]/route.ts` delegates GETs to `src/server/api.ts`. Hono independently verifies Clerk sessions and limits requests using Upstash Redis. The limiter allows 60 requests per minute in a sliding window. It buckets members by verified Clerk ID and Vercel guests by the ingress-provided IP, with a shared fallback for other hosts. The public demo can operate without external services. Enabling account access requires both Clerk and Redis credentials. Partial or unavailable Redis configuration returns 503. Quota exhaustion returns 429 with Retry-After. Responses use private, no-store caching.
+The Node route `src/app/api/[[...route]]/route.ts` delegates GET, POST, PATCH, and DELETE to `src/server/api.ts`. Hono independently verifies Clerk sessions and limits requests using Upstash Redis. The limiter allows 60 requests per minute in a sliding window. It buckets members by verified Clerk ID and Vercel guests by the ingress-provided IP, with a shared fallback for other hosts. The public demo can operate without external services. Enabling account access requires both Clerk and Redis credentials. Partial or unavailable Redis configuration returns 503. Quota exhaustion returns 429 with Retry-After. Responses use private, no-store caching.
 
 | GET route | Response |
 | --- | --- |
@@ -41,7 +41,7 @@ The deployed database is `glyph` on the production branch of Neon project `still
 
 | Relation | Columns and constraints |
 | --- | --- |
-| collections | UUID primary key, indexed Clerk owner_id, required name and kind (typeface or icon_set), positive units_per_em default 1000, ascender 800, descender −200, cap_height 700, x_height 500, created_at and updated_at default to now, nullable thumbnail text. |
+| collections | UUID primary key, indexed Clerk owner_id, required name and kind (typeface or icon_set), positive units_per_em default 1000, ascender 800, descender −200, cap_height 700, x_height 500, created_at and updated_at default to now, nullable thumbnail text, studio_revision integer default 0, studio_receipts JSONB default []. |
 | glyphs | UUID primary key; collection_id FK with cascade; unique (collection_id, key); paths JSONB array of SVG path strings default []; advance_width 600; left_bearing and right_bearing 50; revision 0. |
 | kerning_pairs | collection_id FK with cascade; unique (collection_id, left_key, right_key); required signed integer adjustment in font units. |
 
@@ -57,9 +57,24 @@ Every command accepts a caller-provided ID, actor kind and ID, UTC timestamp, an
 
 `/studio/[id]` exposes the glyph matrix, SVG editor, and glyph and optical metrics inspector. The desktop has three panes. Compact layouts switch panes within the same 100dvh shell and keep the document and open pen path in memory. Guest sample IDs are `demo`, `forma`, `axial`, and `orbit`. A verified member opens a private collection through GET `/api/collections/:id/studio`. The query scopes the collection and its glyph join to the verified owner.
 
-The Studio response includes the collection ID, name, owner, kind, optical metrics, and each glyph's key, serialized paths, and metrics. The browser converts this model to `GlyphFoundryState`. The draft key is `glyph:studio:v1:<owner>:<collection>` in local storage and contains optical metrics and glyphs with canonical path strings. It restores outlines and metrics after reload. Undo and redo are session-local. Server autosave is scheduled for M4.1.
+The Studio response includes the collection ID, name, owner, kind, optical metrics, each glyph's key, serialized paths and metrics, saved kerning, shared revision, and recent receipts. The browser converts this model to `GlyphFoundryState`. Undo and redo are session-local. Integrating a changed shared document clears the undo stack so history applies to the current outlines.
 
 Pointer gestures convert through the inverse SVG screen transform and use pointer capture. A drag previews in component state and commits one action with the starting document revision. The Node tool carries attached handles when moving an anchor. Pen drag adds a tangent to the current node. Pen supports line, quadratic, and cubic modes, and can finish open or close. Rectangle and ellipse tools produce closed contours. The inspector applies boolean operations to selected closed contours, where the first selected is the subtraction subject. Paper.js runs through its browser entry on the client and is externalized from the Next.js server bundle.
+
+### Shared autosave and presence
+
+| Route | Contract |
+| --- | --- |
+| GET /api/collections/:id/studio | `{studio}` includes `syncRevision` and recent `receipts`. |
+| PATCH /api/collections/:id/studio | `{requestId,expectedRevision,snapshot:{metrics,glyphs,kerning}}` → 200 with saved revision and receipt, or 409 with the latest studio. |
+| POST /api/collections/:id/presence | `{clientId,glyph,anchor:{contour,index}\|null}` → 204. Glyph may be null. |
+| GET /api/collections/:id/events | SSE carrying `revision`, `presence`, `roster`, and `heartbeat`. Each revision event has the revision as its SSE ID. |
+
+Neon commits guides, glyphs, pairs, the next revision, and the attributed receipt in one conditional SQL statement. The collection keeps the most recent 32 receipts as `{requestId,revision,actor:{kind,id,label},at}` to recognize retried saves. The repository scopes each read and write to the verified owner. Clerk and the existing same-origin policy cover browser saves and presence. A reconnect fetches the current revision and then loads the complete studio snapshot when newer.
+
+Redis channels use `glyph:live:v1:<collection>:events` and the corresponding `:presence` hash. A room tracks up to 32 sessions. Presence expires after 45 seconds and visible clients refresh every 18 seconds. The room hash expires after 60 seconds. Streams reconcile against Neon and refresh the roster every 15 seconds, and reconnect after up to 52 seconds to stay within the Vercel function budget.
+
+Member clients compare local and shared edits against the last acknowledged snapshot. Separate glyphs, pairs, and guide fields merge automatically. Overlaps and guide or pair dependencies ask the designer to choose a version. The browser stores unsettled changes at `glyph:studio:v1:<owner>:<collection>:draft:<tab-id>`, keeping the tab ID in session storage for reloads. The backup contains the base revision, base snapshot, pending request, and conflict data. Choosing the shared version stores the local recovery copy. Guests keep the original collection-local draft key. The first connected tab imports a legacy member draft and asks for a choice if the shared collection already contains changes.
 
 ## Typeface proofing
 

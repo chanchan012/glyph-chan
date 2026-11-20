@@ -64,6 +64,14 @@ The studio exports TrueType, WOFF2, SVG sprites, React icon ZIPs, and specimen S
 
 Passed 41 Vitest cases, 29 Playwright cases, the merged production build, and the production dependency audit. Tests verified SFNT tables, WOFF2 round-trip decoding, Chromium font loading and kerning, escaped SVG and React ZIP entries, job authorization and idempotence, and local Inngest worker registration.
 
+## M4.1 · Live studio sync
+
+Merged `feat/live-studio-sync` into `main` at `332c1f7`. Vercel reports the [production studio](https://glyph-chan.vercel.app/studio/demo) and [feature preview](https://glyph-chan-hkb01hyvk-chanchans-projects-aada625f.vercel.app/studio/demo) ready. Production returns 200 for the landing, Clerk sign-in, guest studio, and health routes, and 401 for anonymous studio read, save, stream, and presence calls.
+
+Neon migration `0002_supreme_kate_bishop` added `collections.studio_revision` and `studio_receipts` and was recorded in the production Drizzle ledger. The existing runtime role can read the receipts and update revisions. Member studios save to Neon automatically, merge changes to separate records, surface overlaps for resolution, and preserve each tab's unresolved edits. Redis Pub/Sub carries revision and presence notices to Hono SSE. Streams catch up from Neon if a notice is missed.
+
+Passed strict TypeScript, 45 Vitest cases, 30 Playwright cases, the merged production build, and the runtime dependency audit. PostgreSQL tests exercised atomic writes, ownership, conflict detection, rollback, and idempotent retries. The local Hono suite exercised reconnect and rate limits. Playwright exercised same-browser multi-tab editing, anchor presence, conflict resolution, and recovery across reload with intercepted API responses. A signed-in production autosave and presence smoke test remains open.
+
 ## Remaining milestones
 
 | Subgoal | Deliverable | Status |
@@ -73,5 +81,5 @@ Passed 41 Vitest cases, 29 Playwright cases, the merged production build, and th
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Deployed and verified |
 | 3.2 | Binary fonts, SVG and React export jobs | Deployed. Hosted Inngest smoke test awaits keys. |
-| 4.1 | Redis live presence, SSE and Neon autosave | Pending |
+| 4.1 | Redis live presence, SSE and Neon autosave | Deployed. Authenticated production smoke test pending. |
 | 4.2 | HTTP and stdio MCP resources, tools and setup | Pending |
