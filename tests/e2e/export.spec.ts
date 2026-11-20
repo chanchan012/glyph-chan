@@ -67,8 +67,8 @@ test("member export tracks its queued job and exposes the finished download", as
   await expect(file).toBeVisible();
 });
 
-test("Inngest dev endpoint registers the export and repair workers", async ({ request }) => {
+test("Inngest dev endpoint registers the workers and export failure handler", async ({ request }) => {
   const response = await request.get("/api/inngest");
   expect(response.ok()).toBe(true);
-  expect(await response.json()).toMatchObject({ function_count: 4 });
+  expect(await response.json()).toMatchObject({ function_count: 5 });
 });

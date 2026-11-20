@@ -1,12 +1,14 @@
+import { InngestTestEngine } from "@inngest/test";
 import { strFromU8, unzipSync } from "fflate";
 import { parse } from "opentype.js";
 import { describe, expect, it, vi } from "vitest";
 import { decompress } from "wawoff2";
+import { compileCollectionExport } from "../../src/inngest/exports";
 import { compileExport } from "../../src/lib/exports/compile";
 import { ExportInputError, toExportRequest, type ExportRequest } from "../../src/lib/exports/contracts";
 import { guestStudio, studioDocument } from "../../src/lib/foundry/studio-source";
 import { createApi } from "../../src/server/api";
-import { runExportJob, type ExportJob, type ExportJobStore } from "../../src/server/export-jobs";
+import { exportJobStore, runExportJob, type ExportJob, type ExportJobStore } from "../../src/server/export-jobs";
 
 const studio = guestStudio("demo")!;
 const document = studioDocument(studio);
@@ -118,7 +120,18 @@ describe("export jobs and access boundaries", () => {
     const outsider = api("other", store, true).app;
     expect((await outsider.request(location)).status).toBe(404);
     expect((await outsider.request(location + "/download")).status).toBe(404);
-    expect(await runExportJob(id, { store })).toEqual({ state: "ready" });
+    const get = vi.spyOn(exportJobStore, "get").mockImplementation(store.get);
+    const snapshot = vi.spyOn(exportJobStore, "snapshot").mockImplementation(store.snapshot);
+    const finish = vi.spyOn(exportJobStore, "finish").mockImplementation(store.finish);
+    try {
+      const worker = new InngestTestEngine({ function: compileCollectionExport });
+      const { result } = await worker.execute({ events: [{ name: "glyph/export.requested", data: { jobId: id } }] });
+      expect(result).toEqual({ state: "ready" });
+    } finally {
+      get.mockRestore();
+      snapshot.mockRestore();
+      finish.mockRestore();
+    }
     expect(await runExportJob(id, { store, compile: async () => { throw Error("Already built"); } })).toEqual({ state: "ready" });
     expect(await store.snapshot(id)).toBeNull();
     expect(await store.pending(Date.now())).toEqual([]);
@@ -160,5 +173,39 @@ describe("export jobs and access boundaries", () => {
     expect(await runExportJob(id, { store, compile })).toEqual({ state: "failed" });
     expect(await store.get(id)).toMatchObject({ state: "failed", message: "Invalid outline." });
     expect(await store.artifact(id)).toBeNull();
+  });
+
+  it("marks an exhausted export failed and leaves a completed export downloadable", async () => {
+    const store = memoryJobs();
+    const queued = { id: crypto.randomUUID(), ownerId: "owner", createdAt: Date.now(), state: "queued" as const };
+    const completed = { ...queued, id: crypto.randomUUID() };
+    await store.create(queued, request);
+    await store.create(completed, request);
+    await store.finish(completed, { state: "ready", filename: "test.woff2", contentType: "font/woff2" }, {
+      filename: "test.woff2", contentType: "font/woff2", data: "d09GMg==",
+    });
+    const onFailure = compileCollectionExport.opts.onFailure;
+    if (!onFailure) throw new Error("The export worker must register its terminal failure handler.");
+    const get = vi.spyOn(exportJobStore, "get").mockImplementation(store.get);
+    const finish = vi.spyOn(exportJobStore, "finish").mockImplementation(store.finish);
+    const exhaust = (jobId: string) => {
+      // The official test engine does not yet run the registered failure handler.
+      return onFailure({
+        event: { data: { event: { data: { jobId } } } },
+        step: { run: async (_id: string, run: () => Promise<unknown>) => run() },
+      } as Parameters<typeof onFailure>[0]);
+    };
+    try {
+      expect(await exhaust(queued.id)).toEqual({ markedFailed: true });
+      expect(await exhaust(queued.id)).toEqual({ markedFailed: false });
+      expect(await store.get(queued.id)).toMatchObject({ state: "failed", message: expect.stringContaining("after retrying") });
+      expect(await store.snapshot(queued.id)).toBeNull();
+      expect(await exhaust(completed.id)).toEqual({ markedFailed: false });
+      expect(await store.get(completed.id)).toMatchObject({ state: "ready" });
+      expect(await store.artifact(completed.id)).toMatchObject({ data: "d09GMg==" });
+    } finally {
+      get.mockRestore();
+      finish.mockRestore();
+    }
   });
 });
