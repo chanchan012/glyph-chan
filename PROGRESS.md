@@ -50,6 +50,12 @@ The studio has a glyph matrix, node and handle tools, line, quadratic and cubic 
 
 Passed strict TypeScript, 28 Vitest cases, 23 Playwright cases against the production bundle, and the merged production build. Playwright covered anchor and handle dragging, quadratic drawing, rectangle union, metric edits, undo and redo, draft reload, mock member navigation, and six viewport sizes. The desktop and mobile layouts were visually inspected.
 
+## M3.1 · Typeface proofing
+
+Merged `feat/type-proofing` into `main` at `d819042`. The Specimen view is live in the [guest studio](https://glyph-chan.vercel.app/studio/demo) and on the [feature preview](https://glyph-chan-p8wfyh4yb-chanchans-projects-aada625f.vercel.app/studio/demo). A production browser smoke test opened the waterfall and verified its five sizes and default AV adjustment of −52 units.
+
+Passed strict TypeScript, 34 Vitest cases, 25 Playwright cases, and the merged production build. Tests covered signed kerning, undo and redo, draft recovery, Unicode and fallback spacing, stem measurement through counters, overshoot tolerances, and mobile proofing. The local production view was visually inspected. The proof renders editable glyph outlines with direct pair positioning. Pair changes persist on the current device until shared autosave in M4.1.
+
 ## Remaining milestones
 
 | Subgoal | Deliverable | Status |
@@ -57,7 +63,7 @@ Passed strict TypeScript, 28 Vitest cases, 23 Playwright cases against the produ
 | 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed. Hosted Inngest smoke test awaits keys. |
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Deployed and verified |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |
-| 3.1 | Kerning, waterfall and optical consistency analysis | Pending |
+| 3.1 | Kerning, waterfall and optical consistency analysis | Deployed and verified |
 | 3.2 | Binary fonts, SVG and React export jobs | Pending |
 | 4.1 | Redis live presence, SSE and Neon autosave | Pending |
 | 4.2 | HTTP and stdio MCP resources, tools and setup | Pending |
