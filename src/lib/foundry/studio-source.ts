@@ -3,6 +3,7 @@ import { parsePath, serializePath } from "../vector/svg";
 import { transformContour } from "../vector/types";
 import { createFoundry, recordCommand } from "./document";
 import type { FoundryCommand, FoundryMetrics, GlyphFoundryState, GlyphMetrics, KerningPair } from "./types";
+import type { StudioReceipt, StudioSnapshot } from "./sync-contract";
 
 export interface StudioSource {
   id: string;
@@ -12,6 +13,12 @@ export interface StudioSource {
   metrics: FoundryMetrics;
   glyphs: { key: string; paths: string[]; metrics: GlyphMetrics }[];
   kerning?: KerningPair[];
+  syncRevision?: number;
+  receipts?: StudioReceipt[];
+}
+
+export function snapshotDocument(source: StudioSource, snapshot: StudioSnapshot) {
+  return studioDocument({ ...source, ...snapshot });
 }
 
 export function studioDocument(source: StudioSource) {
@@ -89,7 +96,7 @@ export function encodeStudioDraft(document: GlyphFoundryState) {
 }
 
 export function decodeStudioDraft(source: StudioSource, value: string) {
-  if (value.length > 1_500_000) throw new RangeError("Draft exceeds local storage limits.");
+  if (value.length > 5_000_000) throw new RangeError("Draft exceeds local storage limits.");
   const draft = JSON.parse(value) as Pick<StudioSource, "metrics" | "glyphs" | "kerning">;
   if (!draft || !Array.isArray(draft.glyphs)) throw new TypeError("Invalid studio draft.");
   const supplement = source.ownerId === "guest" && source.kind === "typeface" && draft.kerning === undefined

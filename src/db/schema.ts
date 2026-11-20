@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { pgTable, pgEnum, uuid, text, integer, timestamp, jsonb, unique, check, index } from "drizzle-orm/pg-core";
+import type { StudioReceipt } from "../lib/foundry/sync-contract";
 
 export const collectionKind = pgEnum("collection_kind", ["typeface", "icon_set"]);
 export const collections = pgTable("collections", {
@@ -13,6 +14,8 @@ export const collections = pgTable("collections", {
   capHeight: integer("cap_height").notNull().default(700),
   xHeight: integer("x_height").notNull().default(500),
   thumbnail: text(),
+  studioRevision: integer("studio_revision").notNull().default(0),
+  studioReceipts: jsonb("studio_receipts").$type<StudioReceipt[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 }, t => [index("collections_owner_idx").on(t.ownerId), check("positive_em", sql`${t.unitsPerEm} > 0`)]);

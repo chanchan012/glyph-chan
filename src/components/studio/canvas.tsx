@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { recordCommand } from "@/lib/foundry/document";
 import type { FoundryCommand, GlyphFoundryState } from "@/lib/foundry/types";
+import type { PresenceInput, StudioPresence } from "@/lib/foundry/sync-contract";
 import { ellipse, rectangle } from "@/lib/vector/primitives";
 import { serializePath } from "@/lib/vector/svg";
 import { point, type Contour, type Point } from "@/lib/vector/types";
@@ -29,6 +30,8 @@ interface CanvasProps {
   selected: number[];
   commit: (command: FoundryCommand, expectedRevision?: number) => boolean;
   onSelect: (contour: number) => void;
+  onAnchor: (anchor: PresenceInput["anchor"]) => void;
+  peers: StudioPresence[];
 }
 
 function nodeCommand(key: string, target: NodeTarget, to: Point): FoundryCommand {
@@ -68,7 +71,7 @@ function preview(document: GlyphFoundryState, gesture: NodeGesture) {
   }
 }
 
-export function StudioCanvas({ document, glyphKey, tool, curve, guides, selected, commit, onSelect }: CanvasProps) {
+export function StudioCanvas({ document, glyphKey, tool, curve, guides, selected, commit, onSelect, onAnchor, peers }: CanvasProps) {
   const svg = useRef<SVGSVGElement>(null);
   const active = useRef<Gesture | null>(null);
   const [gesture, setGesture] = useState<Gesture | null>(null);
@@ -106,7 +109,10 @@ export function StudioCanvas({ document, glyphKey, tool, curve, guides, selected
     const start = position(svg.current, event.clientX, event.clientY);
     if (!start) return;
     event.stopPropagation();
-    if (node) onSelect(node.target.contour);
+    if (node) {
+      onSelect(node.target.contour);
+      onAnchor(node.target.type === "anchor" ? { contour: node.target.contour, index: node.target.anchor } : null);
+    } else onAnchor(null);
     const base = {
       pointer: event.pointerId, key: glyphKey, revision: document.revision, start, current: start,
       moved: false, clientX: event.clientX, clientY: event.clientY,
@@ -172,6 +178,7 @@ export function StudioCanvas({ document, glyphKey, tool, curve, guides, selected
     event.stopPropagation();
     const amount = event.shiftKey ? 10 : 1;
     onSelect(target.contour);
+    onAnchor(target.type === "anchor" ? { contour: target.contour, index: target.anchor } : null);
     commit(nodeCommand(glyphKey, target, point(from.x + amount * direction[0], from.y + amount * direction[1])));
   }
 
@@ -218,6 +225,15 @@ export function StudioCanvas({ document, glyphKey, tool, curve, guides, selected
       {tool === "node" && outlines.map((contour, index) => <NodeMarks key={index}
         contour={contour} index={index} marker={marker} selected={selected.includes(index)}
         onStart={start} onNudge={nudge} />)}
+      {peers.flatMap(peer => {
+        if (peer.glyph !== glyphKey || !peer.anchor) return [];
+        const contour = outlines[peer.anchor.contour];
+        const point = peer.anchor.index === 0 ? contour?.start : contour?.segments[peer.anchor.index - 1]?.to;
+        return point ? [<circle key={peer.clientId} data-testid="peer-anchor"
+          className={"presence-anchor presence-" + peer.actor.kind} cx={point.x} cy={point.y} r={marker * 1.8}>
+          <title>{peer.actor.label} · anchor {peer.anchor.index + 1}</title>
+        </circle>] : [];
+      })}
       {draft && <path data-testid="draft-path" d={serializePath([draft])} className="draft-outline" />}
       {tool === "pen" && draftNodes.map((node, index) => <g key={index}>
         {node.tangent && <line className="handle-line" x1={node.anchor.x} y1={node.anchor.y} x2={node.tangent.x} y2={node.tangent.y} />}
