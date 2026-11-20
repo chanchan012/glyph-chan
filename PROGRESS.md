@@ -34,12 +34,20 @@ Strict TypeScript, 11 Vitest cases, 14 Playwright cases, the production build, a
 
 Neon migration `0001_messy_jackpot` is applied. Verified the nullable `collections.thumbnail` column and runtime role's update grant. Hosted Inngest job execution awaits the user-managed keys and sync. The dashboard shows a local SVG specimen while a saved thumbnail is pending.
 
+## M2.1 · Vector path and command engine
+
+Merged `feat/vector-path-engine` into `main` at `9a40f94`. The engine implements canonical SVG contours, Bézier evaluation and splitting, exact extrema-based bounds, affine transforms, primitives, and curve-preserving Paper.js boolean operations. The command store supports deterministic replay, revision checks, and attributed undo and redo. The public specimen plate uses the shared parser.
+
+Strict TypeScript, all 26 Vitest cases, all 14 Playwright cases, the production build, and the production dependency audit passed. One Playwright run lost its page context during navigation. The full rerun passed without an app change.
+
+Vercel reported both the [production build](https://glyph-chan.vercel.app/demo) and the [feature preview](https://glyph-chan-hq4qnnsed-chanchans-projects-aada625f.vercel.app/demo) ready.
+
 ## Remaining milestones
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
 | 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed. Hosted Inngest smoke test awaits keys. |
-| 2.1 | Deterministic state, attributed commands, undo/redo, path math | Pending |
+| 2.1 | Deterministic state, attributed commands, undo/redo, path math | Deployed and verified |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Pending |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Pending |
 | 3.2 | Binary fonts, SVG and React export jobs | Pending |
