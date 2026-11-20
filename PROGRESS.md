@@ -42,13 +42,21 @@ Strict TypeScript, all 26 Vitest cases, all 14 Playwright cases, the production 
 
 Vercel reported both the [production build](https://glyph-chan.vercel.app/demo) and the [feature preview](https://glyph-chan-hq4qnnsed-chanchans-projects-aada625f.vercel.app/demo) ready.
 
+## M2.2 · Glyph studio
+
+Merged `feat/studio-editor` into `main` at `9dbc1e8`. The [guest studio](https://glyph-chan.vercel.app/studio/demo) and [feature preview](https://glyph-chan-gashgrjsq-chanchans-projects-aada625f.vercel.app/studio/demo) are ready. Production returned 200 with the canvas rendered and 401 for an anonymous private studio request.
+
+The studio has a glyph matrix, node and handle tools, line, quadratic and cubic pen modes, rectangle and ellipse tools, contour booleans, optical guides, metrics, SVG path entry, and undo and redo. Guests and members retain browser-local drafts by collection. The UI is linked from the specimen lab and dashboard. Server autosave is scheduled for M4.1.
+
+Passed strict TypeScript, 28 Vitest cases, 23 Playwright cases against the production bundle, and the merged production build. Playwright covered anchor and handle dragging, quadratic drawing, rectangle union, metric edits, undo and redo, draft reload, mock member navigation, and six viewport sizes. The desktop and mobile layouts were visually inspected.
+
 ## Remaining milestones
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
 | 1.2 | Dashboard CRUD, landing integration, Inngest specimen thumbnails | Deployed. Hosted Inngest smoke test awaits keys. |
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Deployed and verified |
-| 2.2 | Studio grid, editor, draggable anchors and optical guides | Pending |
+| 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Pending |
 | 3.2 | Binary fonts, SVG and React export jobs | Pending |
 | 4.1 | Redis live presence, SSE and Neon autosave | Pending |
