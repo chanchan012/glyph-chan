@@ -11,10 +11,11 @@ import { loadStudio } from "./studio";
 import { requestThumbnail } from "../inngest/client";
 import { createExportRoutes, type ExportServices } from "./export-routes";
 import { requestOrigin } from "./request-origin";
+import { createStudioLiveRoutes, type StudioSyncServices } from "./studio-live-routes";
 
 type Bindings = { Variables: { userId: string | null } };
 type Decision = { success: boolean; reset: number };
-interface Services {
+interface Services extends StudioSyncServices {
   identify: MiddlewareHandler<Bindings>;
   limit: (key: string) => Promise<Decision | null>;
   collections?: CollectionStore;
@@ -87,6 +88,7 @@ export function createApi(services: Services = { identify, limit }) {
     await next();
   });
   return app.route("/exports", createExportRoutes(services.exports))
+    .route("/collections", createStudioLiveRoutes(services))
     .get("/health", c => c.json({ service: "glyph", status: "ok" } as const))
     .get("/session", c => {
       const userId = c.get("userId");
@@ -100,7 +102,7 @@ export function createApi(services: Services = { identify, limit }) {
     .get("/collections/:id/studio", async c => {
       const id = collectionId.safeParse(c.req.param("id"));
       if (!id.success) return c.json({ error: "invalid_collection" }, 400);
-      const studio = await (services.loadStudio ?? loadStudio)(c.get("userId")!, id.data);
+      const studio = await (services.loadStudio ?? services.studioRepository?.load ?? loadStudio)(c.get("userId")!, id.data);
       return studio ? c.json({ studio }) : c.json({ error: "collection_not_found" }, 404);
     })
     .post("/collections", validator("json", (body, c) => {

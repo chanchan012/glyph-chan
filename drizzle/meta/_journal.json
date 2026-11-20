@@ -15,6 +15,13 @@
       "when": 1795141398685,
       "tag": "0001_messy_jackpot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795186765259,
+      "tag": "0002_supreme_kate_bishop",
+      "breakpoints": true
     }
   ]
 }
