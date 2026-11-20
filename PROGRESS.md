@@ -56,6 +56,14 @@ Merged `feat/type-proofing` into `main` at `d819042`. The Specimen view is live 
 
 Passed strict TypeScript, 34 Vitest cases, 25 Playwright cases, and the merged production build. Tests covered signed kerning, undo and redo, draft recovery, Unicode and fallback spacing, stem measurement through counters, overshoot tolerances, and mobile proofing. The local production view was visually inspected. The proof renders editable glyph outlines with direct pair positioning. Pair changes persist on the current device until shared autosave in M4.1.
 
+## M3.2 · Font and icon exports
+
+Merged `feat/font-and-icon-export` into `main` at `980c095`. The [production studio](https://glyph-chan.vercel.app/studio/demo) and [feature preview](https://glyph-chan-6oce8l51w-chanchans-projects-aada625f.vercel.app/studio/demo) are ready. A production browser smoke test downloaded `forma-serif.woff2` from the guest studio and verified its `wOF2` signature.
+
+The studio exports TrueType, WOFF2, SVG sprites, React icon ZIPs, and specimen SVGs from the current draft. Inngest uses the existing Upstash instance for private compilation snapshots, status and expiring downloads. Direct compilation is available to guests and on deployments that await Inngest configuration. Hosted workers await the user-managed event and signing keys and app sync.
+
+Passed 41 Vitest cases, 29 Playwright cases, the merged production build, and the production dependency audit. Tests verified SFNT tables, WOFF2 round-trip decoding, Chromium font loading and kerning, escaped SVG and React ZIP entries, job authorization and idempotence, and local Inngest worker registration.
+
 ## Remaining milestones
 
 | Subgoal | Deliverable | Status |
@@ -64,6 +72,6 @@ Passed strict TypeScript, 34 Vitest cases, 25 Playwright cases, and the merged p
 | 2.1 | Deterministic state, attributed commands, undo/redo, path math | Deployed and verified |
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Deployed and verified |
-| 3.2 | Binary fonts, SVG and React export jobs | Pending |
+| 3.2 | Binary fonts, SVG and React export jobs | Deployed. Hosted Inngest smoke test awaits keys. |
 | 4.1 | Redis live presence, SSE and Neon autosave | Pending |
 | 4.2 | HTTP and stdio MCP resources, tools and setup | Pending |
