@@ -24,7 +24,7 @@ Created the `glyph` database on the production branch of Neon project `still-bir
 
 Configured Vercel Production with the dedicated Glyph Clerk development instance, the existing free `kinora` Upstash Redis database, and the pooled `glyph_runtime` connection. Clerk production credentials require a custom domain with DNS control. Preview deployments continue to serve the guest specimen lab.
 
-Verified that the Clerk sign-in and sign-up forms render on the public site. Confirmed that unauthenticated account requests return 401, and that the live Upstash limiter returns 429 with Retry-After at 60 requests in the same guest window. An authenticated account session still needs a live smoke test.
+Verified that the Clerk sign-in and sign-up forms render on the public site. Confirmed that unauthenticated account requests return 401, and that the live Upstash limiter returns 429 with Retry-After at 60 requests in the same guest window. The M4.2 production smoke test also verified an authenticated account request with the dedicated Glyph Clerk development instance.
 
 ## M1.2 · Collections and specimen thumbnails
 
@@ -70,9 +70,17 @@ Merged `feat/live-studio-sync` into `main` at `332c1f7`. Vercel reports the [pro
 
 Neon migration `0002_supreme_kate_bishop` added `collections.studio_revision` and `studio_receipts` and was recorded in the production Drizzle ledger. The existing runtime role can read the receipts and update revisions. Member studios save to Neon automatically, merge changes to separate records, surface overlaps for resolution, and preserve each tab's unresolved edits. Redis Pub/Sub carries revision and presence notices to Hono SSE. Streams catch up from Neon if a notice is missed.
 
-Passed strict TypeScript, 45 Vitest cases, 30 Playwright cases, the merged production build, and the runtime dependency audit. PostgreSQL tests exercised atomic writes, ownership, conflict detection, rollback, and idempotent retries. The local Hono suite exercised reconnect and rate limits. Playwright exercised same-browser multi-tab editing, anchor presence, conflict resolution, and recovery across reload with intercepted API responses. A signed-in production autosave and presence smoke test remains open.
+Passed strict TypeScript, 45 Vitest cases, 30 Playwright cases, the merged production build, and the runtime dependency audit. PostgreSQL tests exercised atomic writes, ownership, conflict detection, rollback, and idempotent retries. The local Hono suite exercised reconnect and rate limits. Playwright exercised same-browser multi-tab editing, anchor presence, conflict resolution, and recovery across reload with intercepted API responses. The M4.2 production test confirmed Neon autosave and live anchor presence in two signed-in tabs.
 
-## Remaining milestones
+## M4.2 · MCP foundry
+
+Merged `codex/mcp-foundry` into `main` at `f45760c`. Vercel reports [production](https://glyph-chan.vercel.app/studio/demo) and the [feature preview](https://glyph-chan-en5u1eyl9-chanchans-projects-aada625f.vercel.app/studio/demo) ready. Deployment IDs are `dpl_9PfDyZZYuRgGvGn3ewi4xTJDkyXr` and `dpl_FrstKTohN3kRqqHj4LMkUAtmwNsZ`.
+
+The studio creates a revocable, seven-day bearer token for one agent per collection. MCP v2 exposes three resource types and all nine tools over Streamable HTTP and the local stdio bridge. Agent mutations use the same command reducer and Neon revision checks as the editor, retain attribution, and publish live glyph and optional anchor presence. No database migration or additional Vercel variables were needed for MCP.
+
+Passed strict TypeScript, 48 Vitest cases, 31 Playwright cases, the merged production build, and the production dependency audit. The end-to-end test used real HTTP and stdio clients, a PostgreSQL test database, and an SSE browser connection. It generated two lowercase glyphs from uppercase coordinates and verified the live outline, anchor highlight, and attribution. The signed-in production smoke test verified Clerk, Neon autosave, Redis presence across tabs, MCP discovery and attributed edits, and revoked-token rejection. The temporary test collection and Clerk account were removed.
+
+## Milestone status
 
 | Subgoal | Deliverable | Status |
 | --- | --- | --- |
@@ -81,5 +89,5 @@ Passed strict TypeScript, 45 Vitest cases, 30 Playwright cases, the merged produ
 | 2.2 | Studio grid, editor, draggable anchors and optical guides | Deployed and verified |
 | 3.1 | Kerning, waterfall and optical consistency analysis | Deployed and verified |
 | 3.2 | Binary fonts, SVG and React export jobs | Deployed. Hosted Inngest smoke test awaits keys. |
-| 4.1 | Redis live presence, SSE and Neon autosave | Deployed. Authenticated production smoke test pending. |
-| 4.2 | HTTP and stdio MCP resources, tools and setup | Pending |
+| 4.1 | Redis live presence, SSE and Neon autosave | Deployed and verified |
+| 4.2 | HTTP and stdio MCP resources, tools and setup | Deployed and verified |

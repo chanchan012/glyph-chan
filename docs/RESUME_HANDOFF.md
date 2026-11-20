@@ -26,16 +26,25 @@ For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-c
 
 1. Run `npm run typecheck` and `npm test`.
 2. Run `npx playwright install chromium` once and `npm run test:e2e`. On Windows with Edge installed, set `$env:PLAYWRIGHT_CHANNEL='msedge'` to use it. Playwright builds the production bundle and starts its own guest-only server on port 3211.
-3. Run `npm run build`. Verify deployment in Vercel. Test live sign-in and member RPC after configuring credentials.
+3. Run `npm run build`. Verify deployment in Vercel. A production smoke test already verified Clerk, member RPC, Neon autosave, Redis presence, and MCP edits and revocation.
 
-## Next subgoal
+## Use the deployed studio
 
-Resume from the tested foundation on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) to inspect the shell. Manage keys for the linked deployment in [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables). After setting credentials and redeploying, sign in and request /api/account in the same browser. Verify that the response contains your Clerk user ID and that the Redis limiter records the request.
+The implementation is on [GitHub main](https://github.com/chanchan012/glyph-chan/tree/main). Open the [production guest demo](https://glyph-chan.vercel.app/demo) or sign in to create and edit private collections. Manage Inngest activation in [Vercel environment settings](https://vercel.com/chanchans-projects-aada625f/glyph-chan/settings/environment-variables).
 
-Open `/studio/demo` to resume a guest draft, or select a member collection from the dashboard. Use the Inspector to edit bearings and optical guides, combine contours, or paste canonical SVG path data. Member drafts autosave to Neon. In a signed-in production session, open the same owned collection in two tabs. Edit one glyph in each tab, verify both changes and anchor presence, then reload and verify the saved revision. Local automation already tests the route with PostgreSQL and the two-tab interface with intercepted API responses.
+Open `/studio/demo` to resume a guest draft, or select a member collection from the dashboard. Use the Inspector to edit bearings and optical guides, combine contours, or paste canonical SVG path data. Member drafts autosave to Neon. Open the same collection in two signed-in tabs to see shared edits and active anchors.
 
 Open Specimen in a typeface studio to proof outlines at five sizes, preview and save kerning adjustments, or inspect stem widths and overshoot. Member autosave includes kerning, outlines, and metrics in one revision.
 
 Use Export in the studio to download WOFF2, TrueType, an SVG sprite, a React ZIP, or a specimen SVG. Background jobs are owner-scoped and the last job can be reopened in the same browser tab. Direct compilation remains available while hosted Inngest waits for keys and sync.
 
-Branch from main for 4.2. Implement the HTTP and stdio MCP transports, scoped credentials, resources, agent tools, and the studio setup modal. Reuse the typed document reducer, owner-scoped repository, revision checks, and Redis notices so an agent edit appears in the same studio view. Verify a real MCP client generating lowercase contours from uppercase anchors while a Playwright studio session shows the changes and agent attribution. Keep hosted Inngest activation user-managed.
+## Connect an MCP client
+
+1. Sign in, open a collection, and select **Agent access**. Give the agent a name and copy its token. A collection supports one active token, which expires seven days after creation.
+2. For Streamable HTTP, use `https://glyph-chan.vercel.app/api/mcp` with `Authorization: Bearer <token>`.
+3. For stdio, configure the client to run `node scripts/glyph-mcp.mjs` from a checkout after `npm ci`. Set `GLYPH_MCP_URL` and `GLYPH_MCP_TOKEN` in the client environment. Keep the bearer token out of version control and revoke or rotate it from Agent access.
+4. Read `glyph://foundry-metrics` and a glyph path resource before mutating. Pass the observed revision as `expectedRevision` and a fresh UUID as `requestId`. Save a returned Inngest job ID, then call `trigger_woff2_compile` with `jobId` to check status and retrieve the artifact.
+
+## Remaining verification
+
+The user manages `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY`. Once both are added to Vercel Production, redeploy and sync the hosted Inngest endpoint. Create a disposable collection and verify the thumbnail worker succeeds. Add an outlined glyph and verify a member WOFF2 export moves from queued to ready and yields a file beginning with `wOF2`. Direct exports and local worker tests are already verified.

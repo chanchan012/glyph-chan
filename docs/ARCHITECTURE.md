@@ -91,3 +91,29 @@ The studio sends a validated snapshot of its current draft to POST `/api/exports
 The font compiler builds OpenType glyphs with the studio's advance and visible left sidebearing, converts SVG y-down coordinates to font y-up, and subdivides cubics into quadratics before TrueType quantization. The fonteditor-core SFNT writer emits actual `glyf`, `cmap` and `hmtx` tables with both GPOS and legacy kern pair tables. WOFF2 compresses the resulting TrueType with the WOFF2 reference WASM. Icon outputs include an SVG symbol sheet, a ZIP with typed React components and a sprite, and specimen SVGs. Paths are canonicalized and XML labels are escaped.
 
 Guest exports and member exports where Inngest is unavailable return the artifact directly. When Inngest and Upstash are configured, a member request gets a 202 with a job UUID. The `glyph/export.requested` event carries only that UUID. Upstash stores the private snapshot, status and artifact as separate keys under `glyph:exports:v1:` for 24 hours. The export worker publishes status and artifact atomically, and a repair worker retries queued submissions that predate its execution by two minutes. GET `/api/exports/:id` and GET `/api/exports/:id/download` check the job owner. The API limits request bodies to 1 MB and downloadable artifacts to 3 MB. The current browser tab keeps the last background job ID in session storage.
+
+## MCP transports and collection credentials
+
+`/api/mcp` uses the MCP v2 server and Hono adapter with stateless Streamable HTTP. Clients send `Authorization: Bearer <token>`. A supplied Origin must match the public application origin. The shared Upstash limiter gives the MCP endpoint separate per-IP and per-collection buckets. `node scripts/glyph-mcp.mjs` serves stdio, relaying resources and tools to the same HTTP endpoint over HTTPS or local HTTP.
+
+The Clerk owner manages a collection's agent through `/api/collections/:id/mcp-token`. GET returns `{agent:{label,expiresAt}|null}`. POST accepts `{label}` and returns the token once with its public metadata. DELETE revokes access. Redis stores the SHA-256 digest, collection ID, Clerk owner ID, agent ID, label, and expiry under `glyph:mcp:v1:<collection>` for seven days. A new token replaces the previous one. Every MCP request checks the credential and confirms the collection still belongs to that owner.
+
+| Resource URI | Data |
+| --- | --- |
+| `glyph://foundry-metrics` | Shared revision, EM square and optical guides, median stem target and tolerances. |
+| `glyph://glyph/{char}/paths` | Shared revision, canonical SVG paths, typed contour anchors and handles, and glyph metrics. Use the URI from the resource list for encoded glyph keys. |
+| `glyph://kerning-table` | Shared revision and saved `{left,right,adjustment}` pairs in font units. |
+
+| Tool | Input and effect |
+| --- | --- |
+| `create_glyph` | Glyph key and optional metrics. |
+| `draw_bezier_contours` | Glyph, append or replace mode, and either canonical SVG `paths` or typed `contours`. |
+| `apply_boolean_operation` | Glyph, union/subtract/intersect, and subject and clip contour indices. |
+| `transform_contours` | Glyph, optional contour indices, and SVG matrix `[a,b,c,d,e,f]`. |
+| `set_glyph_metrics` | Glyph, advanceWidth, leftBearing, and rightBearing. |
+| `set_kerning_pair` | Left and right glyph keys and signed adjustment. Zero removes a pair. |
+| `audit_optical_consistency` | Optional stem target and tolerances. Returns per-glyph measurements. |
+| `export_svg_icons` | Compiles the saved revision into an SVG sprite. |
+| `trigger_woff2_compile` | Compiles the saved typeface revision. Returns a queued job ID or direct WOFF2 bytes as base64. Pass `jobId` to check status and retrieve a finished artifact from the same collection. |
+
+Mutating tools accept optional `expectedRevision`, UUID `requestId`, and `anchor:{contour,index}`. The typed command reducer applies the mutation and the Neon repository commits it with the agent receipt. A stale revision returns the current revision so the agent can reread and retry. Redis publishes the receipt and active glyph or anchor to open studios. Inngest export jobs record the collection ID and format, so MCP retrieval checks both in addition to the owner. Jobs created before M4.2 remain available through the authenticated browser.
