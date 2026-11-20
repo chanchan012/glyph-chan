@@ -89,25 +89,6 @@
   color: var(--muted);
 }
 .dashboard-message button { margin-top: 10px; }
-.collection-dialog form { display: grid; gap: 14px; }
-.collection-dialog .dialog-head { margin: 0; }
-.collection-dialog label {
-  display: grid;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 14px;
-}
-.collection-dialog input, .collection-dialog select {
-  min-height: 44px;
-  width: 100%;
-  padding: 6px 9px;
-  color: var(--ink);
-  background: #fbfaf5;
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-}
-.collection-dialog .form-error { color: var(--wine); }
-.dialog-actions { display: flex; justify-content: flex-end; align-items: center; gap: 16px; }
 @media (max-width: 720px) {
   .dashboard-heading p { margin-top: 8px; font-size: 14px; }
   .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

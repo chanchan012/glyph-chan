@@ -20,7 +20,7 @@ Copy `.env.example` to `.env.local` for local services. Vercel Production alread
 
 Use a domain whose DNS you control to activate Clerk production credentials. Both Clerk keys and Redis credentials are needed for authenticated RPC. The initial migration is already applied to `glyph` in Neon project `still-bird-86777802`. For future migrations, run `npm run db:migrate` with the migration owner's connection string for the intended database. The command loads .env.local and uses DATABASE_URL. Generate migrations after schema changes with `npm run db:generate`.
 
-For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-cli@latest dev -u http://localhost:3000/api/inngest` with a development database configured. To enable hosted jobs, add both Inngest keys in Vercel Production, redeploy, and sync `https://glyph-chan.vercel.app/api/inngest` in the same Inngest environment. Verify that a new collection triggers `render-collection-thumbnail` and that its saved preview appears. The hosted credentials are user-managed.
+For local jobs, set `INNGEST_DEV=1`, run the Next.js app, and run `npx inngest-cli@latest dev -u http://localhost:3000/api/inngest` with development Neon and Upstash credentials. To enable hosted jobs, add both Inngest keys in Vercel Production, redeploy, and sync `https://glyph-chan.vercel.app/api/inngest` in the same Inngest environment. Verify that a new collection triggers `render-collection-thumbnail` and that a member WOFF2 export triggers `compile-collection-export`. The hosted credentials are user-managed.
 
 ## Acceptance commands
 
@@ -36,4 +36,6 @@ Open `/studio/demo` to resume editing a guest draft, or select a member collecti
 
 Open Specimen in a typeface studio to proof outlines at five sizes, preview and save kerning adjustments, or inspect stem widths and overshoot. Draft pairs live beside the local outlines and metrics until M4.1.
 
-Branch from main for 3.2. Implement binary font and icon export from the current studio document, plus Inngest compilation jobs and specimen outputs. Lift the canonical kerning data from `GlyphFoundryState.kerning`. Convert SVG y-down coordinates to font y-up and map left sidebearing and advance width consistently with `src/lib/foundry/text-layout.ts`. Verify real TrueType and WOFF2 headers, round-trip glyph mappings and kerning, and check the downloadable SVG and React packages. Hosted Inngest verification still depends on the user-managed keys and app sync. Later milestones and their order are listed in PROGRESS.md.
+Use Export in the studio to download WOFF2, TrueType, an SVG sprite, a React ZIP, or a specimen SVG. Background jobs are owner-scoped and the last job can be reopened in the same browser tab. Direct compilation remains available while hosted Inngest waits for keys and sync.
+
+Branch from main for 4.1. Implement authorized Neon autosave and replayable Redis-backed updates and presence over SSE. Reuse the command reducer's expected revision and attribution, and preserve legacy browser-local drafts when a member first connects. Verify concurrent changes, conflicts, replays, owner isolation, and reconnect behavior with multiple clients. Later milestones and their order are listed in PROGRESS.md.
