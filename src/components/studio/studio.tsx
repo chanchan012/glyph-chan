@@ -8,6 +8,7 @@ import { commandEnvelope, decodeStudioDraft, encodeStudioDraft, studioDocument, 
 import { Arrow, Brand } from "../marks";
 import { StudioCanvas } from "./canvas";
 import { GlyphPanel, MetricsPanel } from "./panels";
+import { ProofWorkspace } from "./proof";
 import type { Curve, Tool } from "./studio-geometry";
 
 const tools: { value: Tool; label: string }[] = [
@@ -27,6 +28,7 @@ export function Studio({ source }: { source: StudioSource }) {
   const [curve, setCurve] = useState<Curve>("cubic");
   const [guides, setGuides] = useState(true);
   const [pane, setPane] = useState<(typeof panes)[number][0]>("canvas");
+  const [proof, setProof] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [storage, setStorage] = useState<"original" | "local" | "session">("original");
   const [ready, setReady] = useState(false);
@@ -111,10 +113,10 @@ export function Studio({ source }: { source: StudioSource }) {
       <a href="/dashboard" className="back-link"><Arrow back /> Collections</a>
     </header>
     <div className="studio-toolbar" role="group" aria-label="Studio tools">
-      <div className="tool-group">
+      {!proof && <div className="tool-group">
         {tools.map(({ value, label }) => <button key={value} aria-pressed={tool === value} onClick={() => setTool(value)}>{label}</button>)}
-      </div>
-      {tool === "pen" && <label className="curve-select"><span>Curve</span>
+      </div>}
+      {!proof && tool === "pen" && <label className="curve-select"><span>Curve</span>
         <select aria-label="Curve type" value={curve} onChange={event => setCurve(event.target.value as Curve)}>
           <option value="cubic">Cubic</option><option value="quadratic">Quadratic</option><option value="line">Line</option>
         </select>
@@ -122,13 +124,14 @@ export function Studio({ source }: { source: StudioSource }) {
       <div className="tool-group tool-history">
         <button onClick={() => { store.getState().undo(); setFeedback(""); }} disabled={!canUndo}>Undo</button>
         <button onClick={() => { store.getState().redo(); setFeedback(""); }} disabled={!canRedo}>Redo</button>
-        <button aria-pressed={guides} onClick={() => setGuides(value => !value)}>Guides</button>
+        {!proof && <button aria-pressed={guides} onClick={() => setGuides(value => !value)}>Guides</button>}
+        {source.kind === "typeface" && <button aria-pressed={proof} onClick={() => setProof(value => !value)}>Specimen</button>}
       </div>
     </div>
-    <div className="studio-tabs" role="group" aria-label="Studio panel">
+    <div className="studio-tabs" role="group" aria-label="Studio panel" hidden={proof}>
       {panes.map(([value, label]) => <button key={value} aria-pressed={pane === value} onClick={() => setPane(value)}>{label}</button>)}
     </div>
-    <main className="studio-workspace" data-pane={pane}>
+    <main className="studio-workspace" data-pane={pane} hidden={proof}>
       <aside className="studio-rail rail-glyphs" aria-label="Glyph browser">
         <GlyphPanel document={document} glyphKey={glyphKey} choose={choose} create={create} />
       </aside>
@@ -143,6 +146,7 @@ export function Studio({ source }: { source: StudioSource }) {
             ? previous.filter(value => value !== index) : [...previous.filter(value => value < count), index])} />
       </aside>
     </main>
+    {source.kind === "typeface" && <ProofWorkspace document={document} active={proof} commit={commit} />}
     <footer className="studio-status">
       {feedback ? <p role="alert">{feedback}</p> : <span>{source.ownerId === "guest" ? "Guest draft" : "Collection draft"}</span>}
       <span>{storage === "local" ? "Saved on this device" : storage === "session" ? "Session only" : "Edits stay on this device"}</span>

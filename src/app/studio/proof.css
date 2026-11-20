@@ -1,0 +1,113 @@
+.proof-workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 28%);
+  background: #f9f5ed;
+}
+.proof-waterfall, .proof-inspector { min-height: 0; min-width: 0; }
+.proof-waterfall {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: clamp(10px, 3vw, 34px) clamp(12px, 4vw, 55px) 0;
+}
+.proof-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.proof-heading h2 {
+  margin-bottom: 12px;
+  font-size: clamp(35px, 6vw, 76px);
+  line-height: .95;
+  letter-spacing: -.05em;
+  color: var(--studio-plum);
+}
+.proof-heading label, .proof-input { font-size: 13px; }
+.proof-heading input { accent-color: var(--studio-plum); }
+.proof-input { display: grid; gap: 5px; color: var(--muted); padding-bottom: 12px; }
+.proof-input textarea, .proof-fields input, .proof-fields select, .kerning-adjustment input {
+  border: 1px solid var(--studio-line);
+  border-radius: 3px;
+  background: #fffcf4;
+  color: var(--studio-ink);
+  padding: 6px 8px;
+  min-width: 0;
+}
+.proof-input textarea { width: 100%; resize: vertical; min-height: 45px; max-height: 100px; }
+.waterfall-rows { overflow: auto; overscroll-behavior: contain; min-height: 0; }
+.waterfall-row {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  min-height: 47px;
+  border-top: 1px solid var(--studio-line);
+  padding-block: 7px;
+}
+.waterfall-row h3 { font: 11px var(--mono); color: var(--muted); white-space: nowrap; }
+.waterfall-outline { overflow: auto; }
+.proof-line { display: block; max-width: none; color: var(--studio-plum); }
+.proof-inspector {
+  overflow: auto;
+  overscroll-behavior: contain;
+  border-left: 1px solid var(--studio-line);
+  padding: 14px clamp(10px, 1.8vw, 24px);
+  background: #f3ede5;
+}
+.proof-inspector-tabs, .proof-mobile-tabs { display: flex; gap: 6px; }
+.proof-inspector-tabs button, .proof-mobile-tabs button {
+  border: 1px solid var(--studio-line);
+  border-radius: 3px;
+  min-height: 32px;
+  padding: 4px 9px;
+  font-size: 13px;
+}
+.proof-inspector-tabs button[aria-pressed="true"], .proof-mobile-tabs button[aria-pressed="true"] {
+  background: var(--studio-plum);
+  color: #fff6ec;
+}
+.proof-inspector h3 { margin: 14px 0 10px; font: clamp(23px, 3vw, 32px) var(--serif); }
+.proof-inspector p { margin: 8px 0; color: var(--muted); font-size: 13px; }
+.kerning-preview {
+  overflow: auto;
+  background: #432e3a;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+}
+.kerning-preview .proof-line { color: #efcbd8; }
+.kerning-form, .proof-fields label, .kerning-adjustment { display: grid; gap: 6px; }
+.kerning-form { gap: 12px; }
+.proof-fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.proof-fields label, .kerning-adjustment { font-size: 12px; }
+.kerning-adjustment input { width: 100%; font-family: var(--mono); }
+.kerning-actions { display: flex; align-items: center; gap: 12px; }
+.kerning-list { margin-top: 14px; border-top: 1px solid var(--studio-line); }
+.kerning-list button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px;
+  border-bottom: 1px solid var(--studio-line);
+  font: 12px var(--mono);
+}
+.kerning-list button[aria-pressed="true"] { background: #edd3dc; }
+.audit-table { width: 100%; margin-top: 10px; border-collapse: collapse; text-align: left; }
+.audit-table th, .audit-table td {
+  padding: 7px 3px;
+  border-top: 1px solid var(--studio-line);
+  font-size: 12px;
+}
+.audit-table td { font-family: var(--mono); }
+.audit-table small { display: block; font: 10px var(--sans); color: #79324a; }
+.proof-mobile-tabs { display: none; }
+@media (max-width: 780px) {
+  .proof-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .proof-mobile-tabs { display: flex; justify-content: center; padding: 4px; border-bottom: 1px solid var(--studio-line); }
+  .proof-workspace[data-proof-pane="waterfall"] > .proof-inspector,
+  .proof-workspace[data-proof-pane="details"] > .proof-waterfall { display: none; }
+  .proof-inspector { border-left: 0; }
+  .waterfall-row { grid-template-columns: 43px minmax(0, 1fr); }
+}
+@media (max-height: 470px) {
+  .proof-waterfall { padding-top: 7px; }
+  .proof-heading h2 { font-size: 32px; margin-bottom: 5px; }
+  .proof-input textarea { min-height: 30px; height: 35px; }
+  .proof-input { padding-bottom: 6px; }
+}
