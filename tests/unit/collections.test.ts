@@ -1,9 +1,11 @@
 import { randomUUID } from "node:crypto";
+import { InngestTestEngine } from "@inngest/test";
 import { describe, expect, it, vi } from "vitest";
 import { createApi } from "../../src/server/api";
 import type { Collection } from "../../src/lib/collections";
 import type { CollectionStore } from "../../src/server/collections";
-import { generateThumbnail } from "../../src/inngest/thumbnails";
+import * as previews from "../../src/server/collections";
+import { generateThumbnail, renderThumbnail } from "../../src/inngest/thumbnails";
 
 function setup() {
   const rows = new Map<string, Collection & { ownerId: string }>();
@@ -87,13 +89,22 @@ describe("collection RPC", () => {
 describe("Inngest thumbnail job", () => {
   const target = { id: randomUUID(), ownerId: "owner-a", name: "<Orbit & Co>", kind: "icon_set" as const };
 
-  it("uses the owner's current collection and saves an escaped SVG specimen", async () => {
-    const loadPreviewTarget = vi.fn(async () => target);
-    const saveThumbnail = vi.fn(async () => true);
-    expect(await generateThumbnail(target, { loadPreviewTarget, saveThumbnail })).toEqual({ saved: true });
-    expect(loadPreviewTarget).toHaveBeenCalledWith(target.ownerId, target.id);
-    expect(saveThumbnail).toHaveBeenCalledWith(target, expect.stringContaining("&lt;Orbit &amp; Co&gt;"));
-    expect(saveThumbnail).toHaveBeenCalledWith(target, expect.stringContaining("<path"));
+  it("runs the registered worker and saves an escaped specimen for the matching owner", async () => {
+    const loadPreviewTarget = vi.spyOn(previews, "loadPreviewTarget").mockResolvedValue(target);
+    const saveThumbnail = vi.spyOn(previews, "saveThumbnail").mockResolvedValue(true);
+    try {
+      const worker = new InngestTestEngine({ function: renderThumbnail });
+      const { result } = await worker.execute({
+        events: [{ name: "glyph/thumbnail.requested", data: { id: target.id, ownerId: target.ownerId } }],
+      });
+      expect(result).toEqual({ saved: true });
+      expect(loadPreviewTarget).toHaveBeenCalledWith(target.ownerId, target.id);
+      expect(saveThumbnail).toHaveBeenCalledWith(target, expect.stringContaining("&lt;Orbit &amp; Co&gt;"));
+      expect(saveThumbnail).toHaveBeenCalledWith(target, expect.stringContaining("<path"));
+    } finally {
+      loadPreviewTarget.mockRestore();
+      saveThumbnail.mockRestore();
+    }
   });
 
   it("skips deleted or completed collections and reports stale writes", async () => {
