@@ -45,4 +45,10 @@ The deployed database is `glyph` on the production branch of Neon project `still
 | glyphs | UUID primary key; collection_id FK with cascade; unique (collection_id, key); paths JSONB array of SVG path strings default []; advance_width 600; left_bearing and right_bearing 50; revision 0. |
 | kerning_pairs | collection_id FK with cascade; unique (collection_id, left_key, right_key); required signed integer adjustment in font units. |
 
-The static specimen studies use SVG coordinates with the y-axis down. Font metrics use positive ascenders and negative descenders. The path engine owns conversion between those spaces.
+## Vector document and command history
+
+`GlyphFoundryState` contains a collection ID and kind, a document revision, optical metrics, and a map of glyphs by key. Typeface keys are Unicode scalar values. Icon-set keys are strings. A glyph contains its editable contours and advance width and sidebearings in font units. The studio coordinate model uses SVG's y-down direction and baseline y=0. Font metrics retain positive ascenders and negative descenders. The public specimen plates retain their own viewport and use the shared SVG parser for anchor positions.
+
+The canonical contour starts with an anchor and holds absolute line, quadratic, or cubic segments. A separate flag closes the contour. The SVG parser expands relative and smooth commands and converts arcs to cubic approximations. Coordinates are normalized to eight decimal places. Paper.js handles nonzero-fill union, subtraction, and intersection, preserving holes, disconnected components, and cubic geometry. Bézier helpers evaluate and split curves and calculate bounds from extrema.
+
+Every command accepts a caller-provided ID, actor kind and ID, UTC timestamp, and optional expected revision. `recordCommand` applies one atomic Immer edit and returns forward and inverse patches. Zustand stores a bounded history with attribution and clears redo when a new edit succeeds. Dispatch, undo, and redo advance the document revision. Replay of the same commands against the same base document is deterministic.
